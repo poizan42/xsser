@@ -10,8 +10,11 @@ try:
 except ImportError:
     from StringIO import StringIO
 
+# your unique real opponent
+time = datetime.datetime.now()
+
 # hashing injections to evade tool filtering
-hashing = hashlib.md5(str(datetime.datetime.now())).hexdigest()
+hashing = hashlib.md5(str(time)).hexdigest()
 
 # DEFAULT_XSS = '"><img src=x onerror=alert(1);>'
 DEFAULT_XSS = '">' + hashing
@@ -19,7 +22,7 @@ DEFAULT_XSS = '">' + hashing
 # to be or not to be...
 hash_found = []
 hash_notfound = []
-
+	
 class Curl:
     agent = 'Googlebot/2.1 (+http://www.google.com/bot.html)'
     cookie = None
@@ -305,15 +308,15 @@ if __name__ == "__main__":
 
     p = optparse.OptionParser(description='Cross site "scripter" is an automatic tool for pentesting XSS attacks against different applications. (See \033[1;37mREADME\033[1;m for more information)',
                               	    prog='XSSer.py',
-				    version='\033[1;35mXSSer v0.1\033[1;m - (Copyright - GPL3.0) - 2010 \033[1;35mby psy\033[1;m\n',
+				    version='\033[1;35mXSSer v0.3\033[1;m - (Copyright - GPL3.0) - 2010 \033[1;35mby psy\033[1;m\n',
                                     usage= '\npython XSSer.py [-u <url> |-i <file> |-g <dork>] [-p <postdata>] [OPTIONS] [Request] [Bypassing] [Techniques]\n')
 
     p.set_defaults(verbose=False, threads=1, retries=3, timeout=30)
     p.disable_interspersed_args()
 
     p.add_option("-v", "--verbose", action="store_true", dest="verbose", help="verbose (default NO)")
-    p.add_option("--update", action="store", dest="update", help="update XSSer tool ( framework + vectors )") 
-    p.add_option("-w", action="store", dest="fileoutput", help="output results to XML file") 
+    #p.add_option("--update", action="store", dest="update", help="update XSSer tool ( framework + vectors )") 
+    p.add_option("-w", action="store_true", dest="fileoutput", help="output results to file") 
 
     group1 = optparse.OptionGroup(p, "*Target*",
     "At least one of these options has to be specified to set the source to get target urls from.")
@@ -349,7 +352,7 @@ if __name__ == "__main__":
     group4.add_option("--Hex", action="store_true", dest="Hex", help="Use Hexadecimal encoding")
     group4.add_option("--Hes", action="store_true", dest="Hes", help="Use Hexadecimal encoding, with semicolons")
     group4.add_option("--Dec", action="store_true", dest="Dec", help="Use Decimal encoding")
-    group4.add_option("--Dfo", action="store_true", dest="Dwo", help="Encodes fuzzing IP addresses in DWORD format")
+  # group4.add_option("--Dfo", action="store_true", dest="Dwo", help="Encodes fuzzing IP addresses in DWORD format")
     group4.add_option("--Mix", action="store_true", dest="Mix", help="Mix String.FromCharCode() and Unescape()")
     group4.add_option("--Cem", action="store", dest="Cem", help="Try Character Encoding mutations")
     group4.add_option("--Fuzz", action="store_true", dest="fuzz", help="Try different XSS fuzzing vectors (from file)")	
@@ -362,11 +365,11 @@ if __name__ == "__main__":
     
     group6 = optparse.OptionGroup(p, "*Techniques*",
     "Try to inject code using different techniques.")
-    group6.add_option("--Dcp", action="store_true", dest="dcp", help="DCP - Data Control Protocol injection, with fuzzing")	
-    group6.add_option("--Dom", action="store_true", dest="dom", help="DOM - Document Object Model Cross-Site Scripting")
+  # group6.add_option("--Dcp", action="store_true", dest="dcp", help="DCP - Data Control Protocol injection, with fuzzing")	
+  # group6.add_option("--Dom", action="store_true", dest="dom", help="DOM - Document Object Model Cross-Site Scripting")
     group6.add_option("--Xsa", action="store_true", dest="xsa", help="XSA - Cross Site Agent Scripting")
     group6.add_option("--Xsr", action="store_true", dest="xsr", help="XSR - Cross Site Referer Scripting")
-    group6.add_option("--Xfs", action="store_true", dest="xfs", help="XFS - Cross Frame Scripting")
+  # group6.add_option("--Xfs", action="store_true", dest="xfs", help="XFS - Cross Frame Scripting")
   # group5.add_option("--Dos", dest="petitions", action="store", help="DOS - Denial of service attack!!")
     p.add_option_group(group6)
 
@@ -440,7 +443,7 @@ if __name__ == "__main__":
 	
     for url in urls:
 	    print '='*75
-	    print "\033[1;34mTarget:\033[1;m", url, "\033[1;34m-->\033[1;m", datetime.datetime.now()
+	    print "\033[1;34mTarget:\033[1;m", url, "\033[1;34m-->\033[1;m", time
 	    print '='*75
 	    run_attack(url, payloads, query_string)
 
@@ -458,10 +461,20 @@ print '='*75 + '\n'
 for line in hash_found:
 	print "[+] Url:", "\033[1;34m",line[0],"\033[1;m"
 	print "[-] Browsers:", line[1]
+	if options.fileoutput:
+		fout = open("XSSlist.dat", "a")
+		fout.write("-------------" + "\n")
+		fout.write("[*] Target:" + url + "\n")
+		fout.write("[+] Url:" + line[0] + "\n")
+		fout.write("[-] Browsers:"+ line[1] + "\n")
+		fout.write("-------------" + "\n")
 	print '='*15
 
 if hash_found < "1" and hash_notfound:
 	
 	print "Could not find any!!... Try another combination or hack it -manually- :)\n"
 	print '='*75 + '\n'
-
+	if options.fileoutput:
+		fout = open("XSSlist.dat", "w")
+		fout.write("[*] not reported results for: " + url + "\n")
+fout.close()
