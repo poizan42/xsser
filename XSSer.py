@@ -1,9 +1,28 @@
 #!/usr/bin/python -*- coding: utf-8 -*-
 # vim: set expandtab tabstop=4 shiftwidth=4:
+"""
+$Id$
 
-import os, sys, urllib, exceptions, mimetools, pycurl, optparse, datetime
+This file is part of the xsser project, http://xsser.sourceforge.net.
+
+Copyright (c) 2010 psy <root@lordepsylon.net>
+
+xsser is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation version 3 of the License.
+
+xsser is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along
+with xsser; if not, write to the Free Software Foundation, Inc., 51
+Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+"""
+
+import os, sys, urllib, exceptions, mimetools, pycurl, optparse, datetime, hashlib
 import fuzzing.vectors
-import hashlib
 
 try:
     from cStringIO import StringIO
@@ -15,6 +34,7 @@ time = datetime.datetime.now()
 
 # hashing injections to evade tool filtering
 hashing = hashlib.md5(str(time)).hexdigest()
+orig_hash = hashing
 
 # DEFAULT_XSS = '"><img src=x onerror=alert(1);>'
 DEFAULT_XSS = '">' + hashing
@@ -165,6 +185,11 @@ def opt_request(options):
 def get_payloads(options):
 	if options.fuzz:
 		payloads = fuzzing.vectors.vectors
+	
+	elif options.script:
+
+	        payloads = [options.script]
+
 	else:
 		payloads = [{"payload":DEFAULT_XSS, "browser":"[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"}]
 
@@ -223,10 +248,15 @@ def run_attack(url, payloads, query_string):
 	orig_query_string = query_string
 	global hashing
 	orig_hash = hashing
+
 	for payload in payloads:
 		hashing = orig_hash
-		enpayload_url = payload['payload'].strip().replace('XSS',orig_hash)
-		payload_url = orig_query_string.strip() + enpayload_url 		
+              	if options.script:
+		        enpayload_url = options.script.replace('XSS',orig_hash)
+		else:
+			enpayload_url = payload['payload'].strip().replace('XSS',orig_hash)
+		
+		payload_url = orig_query_string.strip() + enpayload_url
 		
 		encmap = { "Str" : lambda x : _fromCharCodeEncode(x), 
 			   "Hex" : lambda x : _hexEncode(x),
@@ -264,14 +294,20 @@ def run_attack(url, payloads, query_string):
 				hashing 	= encmap["Mix"](hashing)
 			
 			payload_url = orig_query_string.strip() + enpayload_url 		
-
+	
 		dest_url = url.strip() + "/" + payload_url
+
 		c = Curl()
 		c.get(dest_url)	
 		print "\n[+] \033[1;31mHashing:\033[1;m", orig_hash
 		if c.info()["http-code"] == "200":
-			print "\n[+] \033[1;33mTrying:\033[1;m", dest_url.strip() 
-			print "\n[+] \033[1;35mBrowser Support:\033[1;m", payload['browser']+ "\n"
+			print "\n[+] \033[1;33mTrying:\033[1;m", dest_url.strip()
+
+			if options.script:
+				print "\n[+] \033[1;35mBrowser Support:\033[1;m Manual Injection" + "\n"
+			else:
+				print "\n[+] \033[1;35mBrowser Support:\033[1;m", payload['browser']+ "\n"
+			
 			if options.verbose:
 				print "[-] \033[1;36mHeaders Results:\033[1;m\n"
 				print c.info()
@@ -279,23 +315,37 @@ def run_attack(url, payloads, query_string):
 				print "[-] \033[1;36mInjection Results:\033[1;m\n"
 				
 			if hashing in c.body():
-				hash_found.append((dest_url, payload['browser']))
+				if options.script:
+					hash_found.append((dest_url, "Manual injection"))
+				else:
+					hash_found.append((dest_url, payload['browser']))
 				if options.verbose:
 					print "Searching hash:", orig_hash , "in target source code...\n"
 					print "Seems that this injection was a success!! :)\n"
 			else:
-				hash_notfound.append((dest_url, payload['browser']))
+				if options.script:
+					hash_notfound.append((dest_url, "Manual injection"))
+				else:
+					hash_notfound.append((dest_url, payload['browser']))
 				if options.verbose:
 					print "Searching hash:", orig_hash , "in target source code...\n"
 					print "Injection failed!. Hash not found...\n"
 			c.close()
 		
 		else:
-			hash_notfound.append((dest_url, payload['browser']))
+			if options.script:
+				hash_notfound.append((dest_url, "Manual injection"))
+			else:
+				hash_notfound.append((dest_url, payload['browser']))
 
 			print "\n[+] \033[1;33mTrying:\033[1;m", dest_url.strip()
-			print "\n[+] \033[1;35mBrowser Support:\033[1;m", payload['browser']+ "\n"
-                        if options.verbose:
+			
+			if options.script:
+				print "\n[+] \033[1;35mBrowser Support:\033[1;m Manual injection" + "\n"
+			else:
+				print "\n[+] \033[1;35mBrowser Support:\033[1;m", payload['browser']+ "\n"
+                        
+			if options.verbose:
 	                        print "[-] \033[1;36mHeaders Results:\033[1;m\n"
 	                        print c.info()
 			  
@@ -308,7 +358,7 @@ if __name__ == "__main__":
 
     p = optparse.OptionParser(description='Cross site "scripter" is an automatic tool for pentesting XSS attacks against different applications. (See \033[1;37mREADME\033[1;m for more information)',
                               	    prog='XSSer.py',
-				    version='\033[1;35mXSSer v0.3\033[1;m - (Copyright - GPL3.0) - 2010 \033[1;35mby psy\033[1;m\n',
+				    version='\033[1;35mXSSer v0.4\033[1;m - (Copyright - GPL3.0) - 2010 \033[1;35mby psy\033[1;m\n',
                                     usage= '\npython XSSer.py [-u <url> |-i <file> |-g <dork>] [-p <postdata>] [OPTIONS] [Request] [Bypassing] [Techniques]\n')
 
     p.set_defaults(verbose=False, threads=1, retries=3, timeout=30)
@@ -460,21 +510,21 @@ print '='*75 + '\n'
 
 for line in hash_found:
 	print "[+] Url:", "\033[1;34m",line[0],"\033[1;m"
-	print "[-] Browsers:", line[1]
-	if options.fileoutput:
-		fout = open("XSSlist.dat", "a")
-		fout.write("-------------" + "\n")
-		fout.write("[*] Target:" + url + "\n")
-		fout.write("[+] Url:" + line[0] + "\n")
-		fout.write("[-] Browsers:"+ line[1] + "\n")
-		fout.write("-------------" + "\n")
-	print '='*15
+   	print "[-] Browsers:", line[1]
+    	if options.fileoutput:
+            fout = open("XSSlist.dat", "a")
+	    fout.write("-------------" + "\n")
+	    fout.write("[*] Target:" + url + "\n")
+	    fout.write("[+] Url:" + line[0] + "\n")
+	    fout.write("[-] Browsers:"+ line[1] + "\n")
+	    fout.write("-------------" + "\n")
+   	print '='*15
 
 if hash_found < "1" and hash_notfound:
 	
-	print "Could not find any!!... Try another combination or hack it -manually- :)\n"
+  	print "Could not find any!!... Try another combination or hack it -manually- :)\n"
 	print '='*75 + '\n'
 	if options.fileoutput:
-		fout = open("XSSlist.dat", "w")
-		fout.write("[*] not reported results for: " + url + "\n")
-fout.close()
+	    fout = open("XSSlist.dat", "w")
+	    fout.write("[*] not reported results for: " + url + "\n")
+	    fout.close()
