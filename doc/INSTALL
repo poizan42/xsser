@@ -1,0 +1,14 @@
+########### XSSer - Cross Site Scripter ################
+
+HOW-TO INSTALL:
+
+You can use XSSer in all different plataforms, for the moment, you need this -python libraries- for correct work:
+
++ python-pycurl - Python bindings to libcurl
++ python-beautifulsoup - error-tolerant HTML parser for Python
+
+(sudo apt-get install python-pycurl python-beautifulsoup)
+
+If you experiment some problems, please report it to the mailing list:
+
+xsser-users@lists.sourceforge.net
