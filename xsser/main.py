@@ -215,7 +215,7 @@ class XSSer(EncoderDecoder):
     
         if options.verbose:
             self.report("[-] \033[1;36mHeaders Results:\033[1;m")
-            self.report(curl_handle.info())
+            #self.report(curl_handle.info())
 
             self.report("[-] \033[1;36mInjection Results:\033[1;m")
  
