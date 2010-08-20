@@ -17,7 +17,7 @@ class Curl:
     atype = None
     acred = None
     proxy = None
-    delay = 3
+    delay = 8
 
     def __init__(self, base_url="", fakeheaders=[ 'Accept: image/gif, image/x-bitmap, image/jpeg, image/pjpeg', 'Connection: Keep-Alive', 'Content-type: application/x-www-form-urlencodedcharset=UTF-8' ]):
         self.handle = pycurl.Curl()
@@ -139,7 +139,7 @@ class Curl:
         Post a url.
         """
         self.set_option(pycurl.POST, 1)
-        self.set_option(pycurl.POSTFIELDS, urllib.urlencode(params))
+        self.set_option(pycurl.POSTFIELDS, params)
         return self.__request(cgi)
 
     def body(self):
@@ -175,6 +175,7 @@ class Curl:
         #m['content-length-download'] = str(self.handle.getinfo(pycurl.CONTENT_LENGTH_DOWNLOAD))
         #m['content-length-upload'] = str(self.handle.getinfo(pycurl.CONTENT_LENGTH_UPLOAD))
         #m['content-type'] = (self.handle.getinfo(pycurl.CONTENT_TYPE) or '').strip(';')
+	#m['encoding'] = str(self.handle.getinfo(pycurl.ENCODING))
         return m
 
     @classmethod

@@ -8,7 +8,7 @@ DEBUG = 1
 
 class Dorker(object):
     def __init__(self, engine='scroogle'):
-        self._engine = 'scroogle'
+        self._engine = engine
 
     def dork(self, search):
         """

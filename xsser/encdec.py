@@ -75,4 +75,22 @@ class EncoderDecoder(object):
                         tmp='0' +tmp 
                 encoded=encoded+tmp
         return int(encoded,16)
+	
+    def _ipOctalEncode(self, string):
+	"""
+        Encode to octal.
+	"""
+        encoded=''
+        tblIP = string.split('.')
+        # In the case it's not an IP
+        if len(tblIP)<>4:
+	        return 0
+        octIP = map(lambda s: oct(int(s)).zfill(4), tblIP)
+	return ".".join(octIP)
+
+
+if __name__ == "__main__":
+    encdec = EncoderDecoder()
+    print encdec._ipOctalEncode("127.0.0.1")
+    
 
