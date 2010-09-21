@@ -22,10 +22,6 @@ class ShortURLReservations(object):
             self._url = 'http://tinyurl.com/create.php'
             self._par = 'url'
             self._method = 'get'
-        elif self._service == 'bit.ly':
-            self._url = 'http://bit.ly'
-            self._par = 'u'
-            self._method = 'get'
         elif self._service == 'is.gd':
             self._url = 'http://is.gd/create.php'
             self._par = 'URL'
@@ -50,18 +46,11 @@ class ShortURLReservations(object):
         soup = BeautifulSoup(out.getvalue())
         if self._service == 'tinyurl':
             return soup.findAll('blockquote')[1].findAll('a')[0]['href']
-        elif self._service == 'bit.ly':
-            #print out.getvalue()
-	    xsrf = soup.findAll('input', {'name':'_xsrf'})[0]['value']
-            #print soup.findAll('div', 'linkCapsule_unauth_shortenedLink')[0]
-            return soup.findAll('div', 'unauth_long_link')[0].findAll('a')[0]['href']
         elif self._service == 'is.gd':
-            return soup.findAll('input',{'id':'short_url'})[0]['value']
+            return soup.findAll('input', {'id':'short_url'})[0]['value']
 
 if __name__ == "__main__":
     shortener = ShortURLReservations('tinyurl')
     print shortener.process_url('http://slashdot.org?foo')
     shortener = ShortURLReservations('is.gd')
-    print shortener.process_url('http://slashdot.org?foo')
-    shortener = ShortURLReservations('bit.ly')
     print shortener.process_url('http://slashdot.org?foo')

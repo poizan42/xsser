@@ -1,0 +1,209 @@
+================================================================
+Introduction:
+==============================
+
+XSSer is an open source penetration testing tool that automates the process of detecting and exploiting XSS injections against different applications.
+
+It contains several options to try to bypass certain filters, and various special techniques of code injection.
+
+XSSer is released under the terms of the General Public License v3 and 
+is copyrighted by psy (root@lordepsylon.net - epsylon@riseup.net).
+
+================================================================
+Changelog:
+==============================
+
+* September 22, 2010:
+Stage 3: Added a-xml exporter + ImageXSS + New dorker engines (total 10) + Core clean + Bugfixing + Social Networking auto-publisher + Started -federated- XSS (full disclosure) pentesting botnet.
+
+http://identi.ca/xsserbot01
+http://twitter.com/xsserbot01
+
+August 20, 2010:
+Stage 2: Added attack payloads to fuzzer (26 new injections) + POST + Statistics + URL Shorteners + IP Octal + Post-processing payloading + DOM Shadows! + Cookie injector + Browser DoS (Denegation of Service).
+
+July 1, 2010:
+Stage 1: Dorking + Crawling + IP DWORD + Core clean.
+
+April 19, 2010:
+HTTPS implemented + patched bugs.
+
+March 22, 2010:
+Added "inject your own payload" option. Can be used with all character encoding -bypassers- of XSSer.
+
+March 18, 2010:
+Added attack payloads to fuzzer (62 different XSS injections).
+
+March 16, 2010:
+Added new payload encoders to bypass filters.
+
+================================================================
+Options and features:
+==============================
+
+python XSSer.py [-u |-i |-d ] [-p |-g |-c ] [OPTIONS] [Request] [Bypassing] [Techniques]
+
+Options:
+--version 	show program's version number and exit
+-h, --help 	show this help message and exit
+-v, --verbose 	verbose (default NO)
+-s 	report some statistics
+-w 	output all results directly to template (XSSlist.dat)
+--xml=FILEXML 	output 'positives' to aXML file (--xml filename.xml)
+--publish 	output 'positives' to Social Networks (identi.ca)
+--short=SHORTURLS 	generate shortered links (tinyurl, is.gd)
+
+*Target*:
+At least one of these options has to be specified to set the source to get target urls from.
+
+-u URL, --url=URL 	Enter target(s) to audit
+-i READFILE 	Read target URLs from a file
+-d DORK 	Process search engine dork results as target urls
+--De=DORK_ENGINE 	Search engine to use for dorking (duck, altavista, bing, baidu, yandex, yebol, youdao, cuil, ask)
+
+*HTTP(s) Connections*:
+Testable parameter(s)
+
+-g GETDATA 	Enter payload to audit using GET. (ex: '/menu.php?q=')
+-p POSTDATA 	Enter payload to audit using POST. (ex: 'foo=1&bar=')
+-c CRAWLING 	Crawl target hierarchy parameters (can be slow!)
+--Cw=CRAWLING_WIDTH 	Number of urls to visit when crawling
+
+*Request*:
+These options can be used to specify how to connect to the target url.
+
+--cookie=COOKIE	try this HTTP Cookie header
+--user-agent=AGENT	Change your HTTP User-Agent header (default SPOOFED)
+--referer=REFERER 	Use another HTTP Referer header (default NONE)
+--headers=HEADERS 	Extra HTTP headers newline separated
+--auth-type=ATYPE 	HTTP Authentication type (value Basic or Digest)
+--auth-cred=ACRED 	HTTP Authentication credentials (value name:password)
+--proxy=PROXY 	Use proxy server (tor: http://localhost:8118)
+--timeout=TIMEOUT 	Select your Timeout (default 30)
+--delay=DELAY 	Delay in seconds between each HTTP request (default 8)
+--threads=THREADS 	Maximum number of concurrent HTTP requests (default 1)
+--retries=RETRIES 	Retries when the connection timeouts (default 3)
+
+*Bypassing filters*:
+These options can be used to bypass -XSS- filters on target code.
+
+--Str	Use method String.FromCharCode()
+--Une	Use function Unescape()
+--Hex 	Use Hexadecimal encoding
+--Hes 	Use Hexadecimal encoding, with semicolons
+--Dec 	Use Decimal encoding
+--Dwo 	Encode vectors IP addresses in DWORD
+--Doo 	Encode vectors IP addresses in Octal
+--Mix 	Mix String.FromCharCode() and Unescape()
+--Cem 	Try Character Encoding mutations (ex: 'Hex,Str,Hex')
+--Fuzz 	Try different XSS fuzzing vectors (from file)
+--Anchor 	User anchor stealth (DOM shadows!)
+
+*Manual vectors*:
+Try to inject -manually- your own payload.
+
+--payload=SCRIPT 	OWN - Insert your XSS construction -manually-
+--Fr=FINALPAYLOAD 	Final payload for the real attack
+
+*Techniques*:
+Try to inject code using different techniques.
+
+--Coo 	COO - Cross Site Scripting Cookie injection
+--Xsa 	XSA - Cross Site Agent Scripting
+--Xsr 	XSR - Cross Site Referer Scripting
+--Dos 	DOS - XSS Denial of service (client) attack!!
+--Imx=IMX 	IMX - Create XSS -fake- image (PNG, JPG, GIF, BMP)
+
+================================================================
+Examples of usage:
+==============================
+
+* Simple injection from URL:
+
+$ python XSSer.py -u "http://host.com"
+
+-------------------
+* Simple injection from File, with tor proxy and spoofing HTTP Referer headers:
+
+$ python XSSer.py -i "file.txt" --proxy "http://127.0.0.1:8118" --referer "666.666.666.666"
+
+-------------------
+* Multiple injections from URL, with fuzzing, using tor proxy, injecting on payloads character encoding in "Hexadecimal", with verbose output and saving results to file (XSSlist.dat):
+
+$ python XSSer.py -u "http://host.com" --proxy "http://127.0.0.1:8118" --Fuzz --Hex --verbose -w
+
+-------------------
+* Multiple injections from URL, with fuzzing, using caracter encoding mutations (first, change payload to hexadecimal; second, change to StringFromCharCode the first encoding; third, reencode to Hexadecimal the second encoding), with HTTP User-Agent spoofed, changing timeout to "20" and using multithreads (5 threads):
+
+$ python XSSer.py -u "http://host.com" --Fuzz --Cem "Hex,Str,Hex" --user-agent "XSSer!!" --timeout "20" --threads "5"
+
+-------------------
+* Advance injection from File, payloading your -own- payload and using Unescape() character encoding to bypass filters:
+
+$ python XSSer.py -i "urls.txt" --payload 'a="get";b="URL(\"";c="javascript:";d="alert('XSS');\")";eval(a+b+c+d);' --Une
+
+-------------------
+* Injection from Dork selecting "duck" engine (XSSer Storm!):
+
+$ python XSSer.py --De "duck" -d "search.php?"
+
+-------------------
+* Injection from Crawler with deep 3 and 4 pages to see (XSSer Spider!):
+
+$ python XSSer.py -c3 --Cw=4 -u "http://host.com"
+
+-------------------
+* Simple injection from URL, using POST, with statistics results:
+
+$ python XSSer.py -u "http://host.com" -p "index.php?target=search&subtarget=top&searchstring=" -s
+
+-------------------
+* Multiple injections from URL to a parameter sending with GET, using Fuzzing, with IP Octal payloading ofuscation and printering results in a "tinyurl" shortered link (ready for share!):
+
+$ python XSSer.py -u "http://host.com" -g "bs/?q=" --Fuzz --Doo --short tinyurl
+
+-------------------
+* Simple injection from URL, using GET, injecting a vector in Cookie parameter, trying to use a DOM shadow space (no server logging!) and if exists any "hole", applying your manual final payload "malicious" code (ready for real attacks!):
+
+$ python XSSer.py -u "http://host.com" -g "bs/?q=" --Coo --Anchor --Fr="!enter your final injection code here!"
+
+-------------------
+* Simple injection from URL, using GET and trying to generate with results a "malicious" shortered link (is.gd) with a valid DoS (Denegation Of Service) browser client payload:
+
+$ python XSSer.py -u "http://host.com" -g "bs/?q=" --Dos --short "is.gd"
+
+-------------------
+* Multiple injections to multiple places, extracting targets from a list in a FILE, applying Fuzzing, changing timeout to "20" and using multithreads (5 threads), increasing delay between petitions to 10 seconds, injecting parameters in HTTP USer-Agent, HTTP Referer and in Cookie parameters, using proxy Tor, with IP Octal ofuscation, with statistics results, in verbose mode and creating shortered links (tinyurl) of any valid injecting payloads found. (real playing mode!):
+
+$ python XSSer.py -i "list_of_url_targets.txt" --Fuzz --timeout "20" --threads "5" --delay "10" --Xsa --Xsr --Coo --proxy "http://127.0.0.1:8118" --Doo -s --verbose --Dos --short "tinyurl"
+
+-------------------
+* Injection of user XSS vector directly in a malicious -fake- image created "on the wild", and ready to be uploaded.
+
+$ pyton XSSer.py --Imx "test.png" --payload "!enter your malicious injection code here!"
+
+-------------------
+* Report output 'positives' injections of a dorking search (using "ask" dorker) directly to a XML file.
+
+$ python XSSer.py -d "login.php" --De "ask" --xml "security_report_XSSer_Dork_cuil.xml"
+
+-------------------
+* Publish output 'positives' injections of a dorking search (using "duck" dorker) directly to http://identi.ca
+(federated XSS pentesting botnet)
+
+$ python XSSer.py -d "login.php" --De "duck" --publish
+
+* Examples online:
+
+- http://identi.ca/xsserbot01
+- http://twitter.com/xsserbot01
+
+================================================================
+Contribute
+==============================
+
+If you want to contribute to XSSer development reporting a bug, providing a patch, commenting on the code base or simply need to find help to run XSSer first refer to the xsser documentation, then surf the xsser mailing list (Xsser-users@lists.sourceforge.net) online archives and if you still have something to say, do that on the appropriate xsser mailing list. If nobody gets back to you, then drop me an e-mail (root@lordepsylon.net - epsylon@riseup.net).
+
+If you discover any vulnerability in a software using XSSer, please add to the report a link to this site.
+
+==============================

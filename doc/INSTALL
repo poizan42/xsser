@@ -14,8 +14,11 @@ HOW-TO INSTALL:
 
 + python-pycurl - Python bindings to libcurl
 + python-beautifulsoup - error-tolerant HTML parser for Python
++ python-xml - XML tools for Python
 
--On Debian-based systems, run: sudo apt-get install python-pycurl python-beautifulsoup
+-On Debian-based systems, run: 
+
+sudo apt-get install python-pycurl python-beautifulsoup python-xml
 
 +Please report any problems you encounter using XSSer to the xsser-users mailing-list:
 

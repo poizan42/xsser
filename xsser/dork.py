@@ -1,4 +1,3 @@
-import socket
 import urllib2
 import traceback
 urllib2.socket.setdefaulttimeout(5.0)
@@ -7,23 +6,37 @@ from BeautifulSoup import BeautifulSoup
 DEBUG = 1
 
 class Dorker(object):
-    def __init__(self, engine='scroogle'):
+    def __init__(self, engine='bing'):
         self._engine = engine
 
     def dork(self, search):
         """
         Perform a search and return links.
 
-        Uses scroogle engine.
+        Uses -bing- engine by default.
+
+	(http://en.wikipedia.org/wiki/List_of_search_engines)
         """
-        if self._engine == 'scroogle' or not self._engine:
+        if self._engine == 'bing' or not self._engine:
+            search_url = "http://www.bing.com/search?q=" + urllib2.quote(search)
+        elif self._engine == 'scroogle':
             search_url = "http://www.scroogle.org/cgi-bin/nbbw.cgi?q=" + urllib2.quote(search)
-        elif self._engine == 'duck':
-            search_url = "https://duckduckgo.com/?q=" + urllib2.quote(search)
         elif self._engine == 'altavista':
             search_url = "http://es.altavista.com/web/results?fr=altavista&itag=ody&q=" + urllib2.quote(search)
-        elif self._engine == 'bing':
-            search_url = "http://www.bing.com/search?q=" + urllib2.quote(search)
+        elif self._engine == 'duck':
+            search_url = "https://duckduckgo.com/?q=" + urllib2.quote(search)
+        elif self._engine == 'baidu':
+            search_url = "http://www.baidu.com/s?wd=" + urllib2.quote(search)
+        elif self._engine == 'yandex':
+            search_url = "http://yandex.ru/yandsearch?text=" + urllib2.quote(search)
+        elif self._engine == 'yebol':
+            search_url = "http://www.yebol.com/a.jsp?x=0&y=0&key=" + urllib2.quote(search)
+        elif self._engine == 'youdao':
+            search_url = "http://www.youdao.com/search?q=" + urllib2.quote(search)
+        elif self._engine == 'cuil':
+            search_url = "http://www.cuil.com/search?q=" + urllib2.quote(search)
+        elif self._engine == 'ask':
+            search_url = "http://www.ask.com/web?q=" + urllib2.quote(search)
         try:
             url = urllib2.urlopen(urllib2.Request(search_url,
                                                   headers={'User-Agent':
@@ -60,7 +73,6 @@ class Dorker(object):
                 if not href.startswith("/") and not "microsofttranslator" in href and not "bingj" in href and not "live.com" in href and not "scroogle" in href:
                     found_links.append(href)
         return found_links
-
 
 if __name__ == '__main__':
     dork = Dorker()

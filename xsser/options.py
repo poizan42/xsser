@@ -3,18 +3,20 @@ import optparse
 class XSSerOptions(optparse.OptionParser):
     def __init__(self, *args):
         optparse.OptionParser.__init__(self, 
-                           description='Cross site "scripter" is an automatic tool for pentesting XSS attacks against different applications. (See \033[1;37mREADME\033[1;m for more information)',
+                           description='Cross site "scripter" is an automatic tool for pentesting XSS attacks against different applications.',# (See \033[1;37mREADME\033[1;m for more information)',
                            prog='XSSer.py',
-                           version='\033[1;35mXSSer v0.7a\033[1;m - (Copyright - GPL3.0) - 2010 \033[1;35mby psy\033[1;m\n',
-                           usage= '\npython XSSer.py [-u <url> |-i <file> |-d <dork>] [-p <postdata> |-g <getdata> |-c <crawling>] [OPTIONS] [Request] [Bypassing] [Techniques]\n')
+                           version='\033[1;35mXSSer v1.0b\033[1;m - (Copyright - GPL3.0) - 2010 \033[1;35mby psy\033[1;m\n',
+                           usage= '\npython XSSer.py [-u <url> |-i <file> |-d <dork>] [-g <getdata> |-p <postdata> |-c <crawling>] [OPTIONS] [Request] [Bypassing] [Techniques]\n')
 
         self.set_defaults(verbose=False, threads=1, retries=3, timeout=30)
         self.disable_interspersed_args()
 
+        #self.add_option("--update", action="store_true", dest="update", help="update XSSer tool (framework + vectors)")
         self.add_option("-v", "--verbose", action="store_true", dest="verbose", help="verbose (default NO)")
-        #self.add_option("--update", action="store", dest="update", help="update XSSer tool (core+vectors)") 
-        self.add_option("-w", action="store_true", dest="fileoutput", help="output results to file") 
-	self.add_option("-s", action="store_true", dest="statistics", help="report some statistics")
+        self.add_option("-s", action="store_true", dest="statistics", help="report some statistics")
+        self.add_option("-w", action="store_true", dest="fileoutput", help="output all results directly to template (XSSlist.dat)") 
+        self.add_option("--xml", action="store", dest="filexml", help="output 'positives' to aXML file (--xml filename.xml)")
+        self.add_option("--publish", action="store_true", dest="tweet", help="output 'positives' to Social Networks (identi.ca)")
         self.add_option("--short", action="store", dest="shorturls", help="generate shortered links (tinyurl, is.gd) ")
 
         group1 = optparse.OptionGroup(self, "*Target*",
@@ -22,15 +24,15 @@ class XSSerOptions(optparse.OptionParser):
         group1.add_option("-u", "--url", action="store", dest="url", help="Enter target(s) to audit") 
         group1.add_option("-i", action="store", dest="readfile", help="Read target URLs from a file")
         group1.add_option("-d", action="store", dest="dork", help="Process search engine dork results as target urls")
-        group1.add_option("--De", action="store", dest="dork_engine", help="Search engine to use for dorking (scroogle, duck, altavista, bing)")
+        group1.add_option("--De", action="store", dest="dork_engine", help="Search engine to use for dorking (duck, altavista, bing, baidu, yandex, yebol, youdao, cuil, ask)")
         self.add_option_group(group1)
 
         group2 = optparse.OptionGroup(self, "*HTTP(s) Connections*",
         "Testable parameter(s)")
-	group2.add_option("-g", action="store", dest="getdata", help="Enter payload to audit using GET. (ex: '/menu.php?q=')")
-	group2.add_option("-p", action="store", dest="postdata", help="Enter payload to audit using POST. (ex: 'foo=1&bar=')")
-	group2.add_option("-c", action="store", dest="crawling", help="Crawl target hierarchy parameters (can be slow!)")
-	group2.add_option("--Cw", action="store", dest="crawling_width", help="Number of urls to visit when crawling")
+        group2.add_option("-g", action="store", dest="getdata", help="Enter payload to audit using GET. (ex: '/menu.php?q=')")
+        group2.add_option("-p", action="store", dest="postdata", help="Enter payload to audit using POST. (ex: 'foo=1&bar=')")
+        group2.add_option("-c", action="store", dest="crawling", help="Crawl target hierarchy parameters (can be slow!)")
+        group2.add_option("--Cw", action="store", dest="crawling_width", help="Number of urls to visit when crawling")
         self.add_option_group(group2)
 
         group3 = optparse.OptionGroup(self, "*Request*",
@@ -56,9 +58,9 @@ class XSSerOptions(optparse.OptionParser):
         group4.add_option("--Hes", action="store_true", dest="Hes", help="Use Hexadecimal encoding, with semicolons")
         group4.add_option("--Dec", action="store_true", dest="Dec", help="Use Decimal encoding")
         group4.add_option("--Dwo", action="store_true", dest="Dwo", help="Encode vectors IP addresses in DWORD")
-	group4.add_option("--Doo", action="store_true", dest="Doo", help="Encode vectors IP addresses in Octal")
+        group4.add_option("--Doo", action="store_true", dest="Doo", help="Encode vectors IP addresses in Octal")
         group4.add_option("--Mix", action="store_true", dest="Mix", help="Mix String.FromCharCode() and Unescape()")
-	group4.add_option("--Cem", action="store", dest="Cem", help="Try Character Encoding mutations (ex: 'Hex,Str,Hex')")
+        group4.add_option("--Cem", action="store", dest="Cem", help="Try Character Encoding mutations (ex: 'Hex,Str,Hex')")
         group4.add_option("--Fuzz", action="store_true", dest="fuzz", help="Try different XSS fuzzing vectors (from file)") 
         group4.add_option("--Anchor", action="store_true", dest="anchor", help="User anchor stealth (DOM shadows!)")
         self.add_option_group(group4)
@@ -66,7 +68,7 @@ class XSSerOptions(optparse.OptionParser):
         group5 = optparse.OptionGroup(self, "*Manual vectors*",
         "Try to inject -manually- your own payload.")
         group5.add_option("--payload", action="store", dest="script", help="OWN - Insert your XSS construction -manually-")
-        group5.add_option("--Fr", action="store", dest="finalpayload", help="Final payload for the real attack")
+        group5.add_option("--Fr", action="store", dest="finalpayload", help="Final payload for the real attack (post-processing)")
         self.add_option_group(group5)
         
         group6 = optparse.OptionGroup(self, "*Techniques*",
@@ -76,13 +78,13 @@ class XSSerOptions(optparse.OptionParser):
         group6.add_option("--Coo", action="store_true", dest="coo", help="COO - Cross Site Scripting Cookie injection")
         group6.add_option("--Xsa", action="store_true", dest="xsa", help="XSA - Cross Site Agent Scripting")
         group6.add_option("--Xsr", action="store_true", dest="xsr", help="XSR - Cross Site Referer Scripting")
-      # group6.add_option("--Xfs", action="store_true", dest="xfs", help="XFS - Cross Frame Scripting")
         group6.add_option("--Dos", action="store_true", dest="dos", help="DOS - XSS Denial of service (client) attack!!")
+        group6.add_option("--Imx", action="store", dest="imx", help="IMX - Create XSS -fake- image (PNG, JPG, GIF, BMP)")
         self.add_option_group(group6)
 
     def get_options(self):
         (options, args) = self.parse_args()
-        if (not options.url and not options.readfile and not options.dork): 
+        if (not options.url and not options.readfile and not options.dork and not options.imx): 
             print '='*75
             print  '\n', self.version
             print  self.description, '\n'

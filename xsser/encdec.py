@@ -21,7 +21,7 @@ class EncoderDecoder(object):
         """
         encoded=''
         for char in string:
-                encoded=encoded+","+str(ord(char))
+            encoded=encoded+","+str(ord(char))
         return encoded[1:]
 
     def _hexEncode(self, string):
@@ -30,7 +30,7 @@ class EncoderDecoder(object):
         """
         encoded=''
         for char in string:
-                encoded=encoded+"%"+hex(ord(char))[2:]
+            encoded=encoded+"%"+hex(ord(char))[2:]
         return encoded
 
     def _hexSemiEncode(self, string):
@@ -39,7 +39,7 @@ class EncoderDecoder(object):
         """
         encoded=''
         for char in string:
-                encoded=encoded+"&#x"+hex(ord(char))[2:]+";"
+            encoded=encoded+"&#x"+hex(ord(char))[2:]+";"
         return encoded
 
     def _decEncode(self, string):
@@ -48,7 +48,7 @@ class EncoderDecoder(object):
         """
         encoded=''
         for char in string:
-                encoded=encoded+"&#"+str(ord(char))
+            encoded=encoded+"&#"+str(ord(char))
         return encoded
 
     def _unEscape(self, string):
@@ -57,7 +57,7 @@ class EncoderDecoder(object):
         """
         encoded=''
         for char in string:
-                encoded=encoded+urllib.quote(char)
+            encoded=encoded+urllib.quote(char)
         return encoded
 
     def _ipDwordEncode(self, string):
@@ -68,26 +68,25 @@ class EncoderDecoder(object):
         tblIP = string.split('.')
         # In the case it's not an IP
         if len(tblIP)<>4:
-                return 0
+            return 0
         for number in tblIP:
-                tmp=hex(int(number))[2:]
-                if len(tmp)==1:
-                        tmp='0' +tmp 
-                encoded=encoded+tmp
+            tmp=hex(int(number))[2:]
+            if len(tmp)==1:
+                tmp='0' +tmp 
+            encoded=encoded+tmp
         return int(encoded,16)
 	
     def _ipOctalEncode(self, string):
-	"""
+        """
         Encode to octal.
 	"""
         encoded=''
         tblIP = string.split('.')
         # In the case it's not an IP
         if len(tblIP)<>4:
-	        return 0
+            return 0
         octIP = map(lambda s: oct(int(s)).zfill(4), tblIP)
-	return ".".join(octIP)
-
+        return ".".join(octIP)
 
 if __name__ == "__main__":
     encdec = EncoderDecoder()
