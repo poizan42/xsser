@@ -30,7 +30,23 @@ Dont forget to put your bot to "follow" other -replicants-.
 If you dont know any, try this: xsserbot01
 
 Happy "Cross" Federated Hacking. ;)
+-----
+This file is part of the xsser project, http://xsser.sourceforge.net.
 
+Copyright (c) 2010 psy <root@lordepsylon.net>
+
+xsser is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation version 3 of the License.
+
+xsser is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along
+with xsser; if not, write to the Free Software Foundation, Inc., 51
+Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 """
 import urllib2, urllib
 
@@ -53,6 +69,6 @@ class publisher(object):
         print pagehandle
 
 if __name__ == "__main__":
-    publish = publisher()
+    publish = publisher(object)
     publish.send_to_identica('XSSer a.ka Cross Site -Scripter- more info: http://xsser.sf.net', 'xsserbot01', '8vnVw8wvs', 'http://identi.ca/api/statuses/update.xml')
 

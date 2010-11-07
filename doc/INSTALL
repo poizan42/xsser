@@ -1,25 +1,40 @@
-########### XSSer - Cross Site Scripter ################
+============================================
+XSSer - Cross Site Scripter - "The Mosquito"
+============================================
 
 XSSer is an open source penetration testing tool that automates the process of detecting and exploiting XSS injections against different applications.
 
-Workgroup: https://n-1.cc/pg/groups/15466/xsser/
+Website: 
 
-Website: http://xsser.sourceforge.net/
+- http://xsser.sourceforge.net/
+
+Community:
+
+- lorea.org: https://n-1.cc/pg/groups/15466/xsser/
+- identi.ca: http://identi.ca/group/xsser
+- twitter: https://twitter.com/lord_epsylon/xsser
 
 ===================
-
 HOW-TO INSTALL:
+===================
 
-+XSSer runs on many platforms.  It requires Python and the following libraries:
+XSSer runs on many platforms.  It requires Python and the following libraries:
 
-+ python-pycurl - Python bindings to libcurl
-+ python-beautifulsoup - error-tolerant HTML parser for Python
-+ python-xml - XML tools for Python
+- python-pycurl - Python bindings to libcurl
+- python-beautifulsoup - error-tolerant HTML parser for Python
+- python-xml - XML tools for Python
 
--On Debian-based systems, run: 
+On Debian-based systems, run: 
 
 sudo apt-get install python-pycurl python-beautifulsoup python-xml
 
-+Please report any problems you encounter using XSSer to the xsser-users mailing-list:
+Please report any problems you encounter using XSSer to the xsser-users mailing-list:
 
--mailto:xsser-users@lists.sourceforge.net
+- mailto:xsser-users@lists.sourceforge.net
+
+Or write directly to:
+
+- root@lordepsylon.net / epsylon@riseup.net
+
+
+

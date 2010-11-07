@@ -1,3 +1,25 @@
+#!/usr/bin/python
+# -*- coding: iso-8859-15 -*-
+"""
+$Id$
+
+This file is part of the xsser project, http://xsser.sourceforge.net.
+
+Copyright (c) 2010 psy <root@lordepsylon.net>
+
+xsser is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation version 3 of the License.
+
+xsser is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along
+with xsser; if not, write to the Free Software Foundation, Inc., 51
+Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+"""
 import sys
 import cgi
 import urllib
@@ -13,9 +35,11 @@ class Crawler(object):
     Dont call from several threads! You should create a new one
     for every thread.
     """
-    def __init__(self):
+    def __init__(self, curlwrapper=None):
         # verbose: 0-no printing, 1-prints dots, 2-prints full output
-        self.verbose = 1
+        self.verbose = 2
+        if curlwrapper:
+            self.curl = curlwrapper()
 
     def _find_args(self, url):
         """
@@ -56,11 +80,6 @@ class Crawler(object):
                 attack_qs[arg_name] = "PAYLOAD"
                 attack_url = path + '?' + urllib.urlencode(attack_qs)
                 attack_urls.append(attack_url)
-                #for key, val in qs_joint:
-                    #    attack_qs = dict(qs_joint)
-                    #attack_qs[key] = "XSS"
-                    #attack_url = url + urllib.urlencode(attack_qs)
-                    #attack_urls.append(attack_url)
         return attack_urls
 
     def _crawl(self, path, depth=3, width=0):
@@ -74,9 +93,8 @@ class Crawler(object):
             if (self._width < 0):
                 return
         self._crawled.append(path)
-        url = urllib2.urlopen(path)
-        html_data = url.read()
-        content_type = url.headers['content-type']
+        html_data = self.curl.get(path)
+        content_type = self.curl.info().get('content-type', None)
         try:
             encoding = content_type.split(";")[1].split("=")[1].strip()
         except:
@@ -99,21 +117,25 @@ class Crawler(object):
                 # this link has no href
                 pass
             if not href.startswith('http'):
-                href = path + '/' + href
+                if not href.startswith('/'):
+                    href = path + '/' + href
+                else:
+                    href = path + href
+            else:
+                href = href
             self._check_url(href, depth, width)
         return self._found_args
 
     def _check_url(self, href, depth, width):
         """
         process the given url for a crawl
-        
         check to see if we have to continue crawling on the given url.
         """
         if href.startswith(self._path):
             self._find_args(href)
-        if depth>0:
+        if depth > 0:
             if self.verbose == 2:
-                print " "*(self._max-depth) + " try: " + href, href.startswith(self._path), href in            self._crawled, href, len(self._crawled), depth
+                print " "*(self._max-depth) + " try: " + href
         if href.startswith(self._path) and not href in self._crawled:
             if (depth>0):
                 if self.verbose == 2:
@@ -127,7 +149,6 @@ class Crawler(object):
                         sys.stdout.write("*")
                         sys.stdout.flush()
                     return
-
 
 if __name__ == "__main__":
     c = Crawler()

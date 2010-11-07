@@ -1,3 +1,25 @@
+#!/usr/bin/python
+# -*- coding: iso-8859-15 -*-
+"""
+$Id$
+
+This file is part of the xsser project, http://xsser.sourceforge.net.
+
+Copyright (c) 2010 psy <root@lordepsylon.net>
+
+xsser is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation version 3 of the License.
+
+xsser is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+details.
+
+You should have received a copy of the GNU General Public License along
+with xsser; if not, write to the Free Software Foundation, Inc., 51
+Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+"""
 import urllib
 
 class EncoderDecoder(object):
@@ -12,7 +34,7 @@ class EncoderDecoder(object):
                    "Hes" : lambda x : self._hexSemiEncode(x),
                    "Une" : lambda x : self._unEscape(x),
                    "Dec" : lambda x : self._decEncode(x),
-                   "Mix" : lambda x : self._unEscape(_fromCharCodeEncode(x))
+                   "Mix" : lambda x : self._unEscape(self._fromCharCodeEncode(x))
                    }
 
     def _fromCharCodeEncode(self, string):
@@ -67,7 +89,7 @@ class EncoderDecoder(object):
         encoded=''
         tblIP = string.split('.')
         # In the case it's not an IP
-        if len(tblIP)<>4:
+        if len(tblIP)!=4:
             return 0
         for number in tblIP:
             tmp=hex(int(number))[2:]
@@ -83,7 +105,7 @@ class EncoderDecoder(object):
         encoded=''
         tblIP = string.split('.')
         # In the case it's not an IP
-        if len(tblIP)<>4:
+        if len(tblIP)!=4:
             return 0
         octIP = map(lambda s: oct(int(s)).zfill(4), tblIP)
         return ".".join(octIP)
