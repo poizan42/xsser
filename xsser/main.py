@@ -243,9 +243,6 @@ class XSSer(EncoderDecoder):
 
         # get payload/vector
         payload_string = payload['payload'].strip()
-	# hashing checker payload connected
-        if payload_string == self.hashed_payload and self.options.check:
-            self.check_positives = self.check_positives + 1
         # substitute the attack hash
         self.url_orig_hash = self.generate_hash('url')
         hashed_payload = payload_string.replace('XSS', self.url_orig_hash)
@@ -818,11 +815,15 @@ class XSSer(EncoderDecoder):
                 _accur = 0
             print "Connec: %s %%" % _accur
             print '-'*50
-            vectors = self.total_vectors - self.check_positives 
-            total_payloads = self.check_positives + vectors + self.special_vectors
+            vectors = self.total_vectors - self.false_positives
+            if vectors < 0:
+                vectors = 0
+            else:
+                vectors = vectors
+            total_payloads = self.false_positives + vectors + self.special_vectors
             print "Total Payloads:", total_payloads
             print '-'*25
-            print "Checkers:", self.check_positives ,  "|" , "Vectors:" , vectors , "|" , "Specials:" , self.special_vectors
+            print "Checkers:", self.false_positives,  "|" , "Vectors:" , vectors , "|" , "Specials:" , self.special_vectors
             print '-'*50
             print "Total Injections:" , len(self.hash_notfound) + len(self.hash_found)
             print '-'*25
