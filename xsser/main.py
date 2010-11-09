@@ -63,28 +63,33 @@ class XSSer(EncoderDecoder):
         self.hashed_payload = []
         self.url_orig_hash = []
 
-        # some counters for injections founded
+	# some statistics counters for connections
+        self.success_connection = 0
+        self.not_connection = 0
+        self.forwarded_connection = 0
+        self.other_connection = 0
+
+	# some statistics counters for payloads
+        self.xsr_injection = 0
+        self.xsa_injection = 0
+        self.coo_injection = 0
+        self.manual_injection = 0
+        self.auto_injection = 0
+        self.dcp_injection = 0
+        self.check_positives = 0
+        
+        # some statistics counters for injections founded
         self.xsr_founded = 0
         self.xsa_founded = 0
         self.coo_founded = 0
         self.manual_founded = 0
         self.auto_founded = 0
         self.dcp_founded = 0
-        self.check_founded = 0
+        self.false_positives = 0
 
         # xsser verbosity (0 - no output, 1 - dots only, 2+ - real verbosity)
         self.verbose = 2
         self.options = None
-
-	# define some statistics counters  
-        self.success_connection = 0
-        self.not_connection = 0
-        self.forwarded_connection = 0
-        self.other_connection = 0
-        self.total_vectors = 0
-        self.special_vectors = 0
-        self.check_positives = 0
-        self.false_positives = 0
 
     def generate_hash(self, attack_type='default'):
         """
@@ -138,10 +143,10 @@ class XSSer(EncoderDecoder):
 	# payloading sources
         payloads_fuzz = fuzzing.vectors.vectors
         payloads_dcp = fuzzing.DCP.DCPvectors
-        manual_payload = [{"payload":options.script, "browser":"[you know, is your injection :-P]"}]
+        manual_payload = [{"payload":options.script, "browser":"[manual_injection]"}]
         # sustitute payload for hash to check false positives
         self.hashed_payload = self.generate_hash('url')
-        checker_payload = [{"payload":self.hashed_payload, "browser":"[hashed pre-checking injection process]"}]
+        checker_payload = [{"payload":self.hashed_payload, "browser":"[hashed_precheck_system]"}]
 
         if options.fuzz:
             payloads = payloads_fuzz
@@ -149,27 +154,37 @@ class XSSer(EncoderDecoder):
                 payloads = payloads + payloads_dcp
                 if options.script:
                     payloads = payloads + manual_payload
+                    if options.check:
+                        payloads = checker_payload + payloads
+                elif options.check:
+                    payloads = checker_payload + payloads
             elif options.script:
                 payloads = payloads + manual_payload
+                if options.check:
+                    payloads = checker_payload + payloads
+            elif options.check:
+                payloads = checker_payload + payloads
+            
         elif options.dcp:
             payloads = payloads_dcp
             if options.script:
                 payloads = payloads + manual_payload
+                if options.check:
+                    payloads = checker_payload + payloads
+            elif options.check:
+                payloads = checker_payload + payloads 
         elif options.script:
             payloads = manual_payload
-        else:
+            if options.check:
+                payloads = checker_payload + payloads
+        
+        elif not options.fuzz and not options.dcp and not options.script and not options.check:
             payloads = [{"payload":self.DEFAULT_XSS_PAYLOAD,
 			 "browser":"[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"
-                         }]  
-        if options.check:
-            if options.fuzz:
-                payloads = checker_payload + payloads_fuzz
-            elif options.dcp:
-                payloads = checker_payload + payloads_dcp
-            elif options.script:
-                payloads = checker_payload + manual_payload
-            else:
-                payloads = checker_payload
+                         }]
+        else:
+            payloads = checker_payload
+
         return payloads
 
     def process_ipfuzzing(self, text):
@@ -232,7 +247,6 @@ class XSSer(EncoderDecoder):
         """
         for payload in payloads:
             self.attack_url_payload(url, payload, query_string)
-            self.total_vectors = self.total_vectors + 1
 
     def get_url_payload(self, url, payload, query_string, attack_payload=None):
         """
@@ -316,14 +330,28 @@ class XSSer(EncoderDecoder):
         """
         options = self.options
         self.report("-"*25)
-        self.report("[-] \033[1;31mHashing:\033[1;m " + self.url_orig_hash)
-        self.report("[+] \033[1;33mTrying:\033[1;m " + dest_url.strip(), 'info')
-        self.report("[+] \033[1;35mBrowser Support:\033[1;m " + payload['browser'])
+        if payload['browser'] == "[hashed_precheck_system]" or payload['browser'] == "[manual_injection]":
+            pass
+        else:
+            self.report("[-] Hashing: " + self.url_orig_hash)
+
+        self.report("[+] Trying: " + dest_url.strip(), 'info')
+        self.report("[+] Browser Support: " + payload['browser'])
+        
+	# statistics injections counters
+        if payload['browser']=="[hashed_precheck_system]":
+            self.check_positives = self.check_positives + 1
+        elif payload['browser']=="[Data Control Protocol Injection]":
+            self.dcp_injection = self.dcp_injection + 1
+        elif payload['browser']=="[manual_injection]":
+            self.manual_injection = self.manual_injection + 1
+        else:
+            self.auto_injection = self.auto_injection +1
 
         if options.verbose:
-            self.report("[-] \033[1;36mHeaders Results:\033[1;m\n")
+            self.report("[-] Headers Results:\n")
             self.report(curl_handle.info())
-            self.report("[-] \033[1;31mInjection Results:\n\033[1;m")
+            self.report("[-] Injection Results:\n")
 
         # check attacks success
         for attack_type in self._ongoing_attacks:
@@ -337,7 +365,7 @@ class XSSer(EncoderDecoder):
         """
         Add an attack that failed to inject
         """
-        self.report("[+] \033[1;36mChecking:\033[1;m " + method + " attack with " + hashing + "... fail")
+        self.report("[+] Checking: " + method + " attack with " + hashing + "... fail")
         options = self.options
         if options.script:
             self.hash_notfound.append((dest_url, "Manual injection", method, hashing))
@@ -351,7 +379,10 @@ class XSSer(EncoderDecoder):
         """
         Add an attack that managed to inject the code
         """
-        self.report("[+] \033[1;36mChecking:\033[1;m " + method + " attack with " + hashing + "... ok")
+        if payload['browser'] == "[manual_injection]":
+            self.report("[+] Checking: " + method + " attack with " + payload['payload'] + "... ok")
+        else:
+            self.report("[+] Checking: " + method + " attack with " + hashing + "... ok")
         self.hash_found.append((dest_url, payload['browser'], method, hashing, query_string, payload, orig_url))
 
         if self.options.verbose:
@@ -366,15 +397,29 @@ class XSSer(EncoderDecoder):
         options = self.options
         self.hash_notfound.append((dest_url, payload['browser'], "errorcode"))
         self.report("-"*45)
-        self.report("[-] \033[1;31mHashing:\033[1;m " + self.url_orig_hash)
-        self.report("[+] \033[1;33mTrying:\033[1;m " + dest_url.strip())
-        self.report("[+] \033[1;35mBrowser Support:\033[1;m " + payload['browser'])
+        if payload['browser'] == "[hashed_precheck_system]" or payload['browser'] == "[manual_injection]":
+            pass
+        else:
+            self.report("[-] Hashing: " + self.url_orig_hash)
+
+        self.report("[+] Trying: " + dest_url.strip())
+        self.report("[+] Browser Support: " + payload['browser'])
+ 
+	# statistics injections counters
+        if payload['browser']=="[hashed_precheck_system]":
+            self.check_positives = self.check_positives + 1
+        elif payload['browser']=="[Data Control Protocol Injection]":
+            self.dcp_injection = self.dcp_injection + 1
+        elif payload['browser']=="[manual_injection]":
+            self.manual_injection = self.manual_injection + 1
+        else:
+            self.auto_injection = self.auto_injection +1
 
         if options.verbose:
-            self.report("[-] \033[1;36mHeaders Results:\033[1;m\n")
+            self.report("[-] Headers Results:\n")
             self.report(str(curl_handle.info()))
 
-            self.report("[-] \033[1;36mInjection Results:\033[1;m")
+            self.report("[-] Injection Results:")
 
         self.report("Not injected!. Servers response with http-code different to: 200 OK (" + str(curl_handle.info()["http-code"]) + ")")
 
@@ -423,7 +468,7 @@ class XSSer(EncoderDecoder):
             self.report('='*75)
             self.report(str(p.version))
             self.report('='*75)
-            self.report("Testing [\033[1;33mXSS from URL\033[1;m] injections...good luck ;)")
+            self.report("Testing [XSS from URL] injections... you have your target good defined ;)")
             self.report('='*75)
             urls = [options.url]
 
@@ -431,7 +476,7 @@ class XSSer(EncoderDecoder):
             self.report('='*75)
             self.report(str(p.version))
             self.report('='*75)
-            self.report("Testing [\033[1;33mXSS from file\033[1;m] injections...good luck ;)")
+            self.report("Testing [XSS from file] injections... let me see this list ;)")
             self.report('='*75)
 
             #XXX: need to check if the file have a valid data.
@@ -444,7 +489,7 @@ class XSSer(EncoderDecoder):
             self.report('='*75)
             self.report(str(p.version))
             self.report('='*75)
-            self.report("Testing [\033[1;33mXSS from Dork\033[1;m] injections...good luck ;)")
+            self.report("Testing [XSS from Dork] injections...good luck ;)")
             self.report('='*75)
             dorker = Dorker(options.dork_engine)
             urls = dorker.dork(options.dork)
@@ -515,7 +560,7 @@ class XSSer(EncoderDecoder):
             self.report('='*75)
             self.report(str(p.version))
             self.report('='*75)
-            self.report("[\033[1;33mImage XSS auto-builder\033[1;m]...remember, only IE6 and below versions ;)")
+            self.report("[Image XSS auto-builder]...remember, only IE6 and below versions ;)")
             self.report('='*75)
             self.report(''.join(self.create_fake_image(self.options.imx, self.options.script)))
             self.report('='*75 + "\n")
@@ -525,7 +570,7 @@ class XSSer(EncoderDecoder):
             self.report('='*75)
             self.report(str(p.version))
             self.report('='*75)
-            self.report("[\033[1;33mFlash Attack! XSS auto-builder\033[1;m]...ready to be embedded ;)")
+            self.report("[Flash Attack! XSS auto-builder]...ready to be embedded ;)")
             self.report('='*75)
             self.report(''.join(self.create_fake_flash(self.options.flash, self.options.script)))
             self.report('='*75 + "\n")
@@ -576,19 +621,19 @@ class XSSer(EncoderDecoder):
             hashing = self.generate_hash('xsa')
             Curl.agent = "<script>alert('" + hashing + "')</script>"
             self._ongoing_attacks['xsa'] = hashing
-            self.special_vectors = self.special_vectors + 1
+            self.xsa_injection = self.xsa_injection + 1
 
         if options.xsr:
             hashing = self.generate_hash('xsr')
             Curl.referer = "<script>alert('" + hashing + "')</script>"
             self._ongoing_attacks['xsr'] = hashing
-            self.special_vectors = self.special_vectors + 1
+            self.xsr_injection = self.xsr_injection + 1
 
         if options.coo:
             hashing = self.generate_hash('cookie')
             Curl.cookie = "<script>alert('" + hashing + "')</script>"
             self._ongoing_attacks['cookie'] = hashing
-            self.special_vectors = self.special_vectors + 1
+            self.coo_injection = self.coo_injection + 1
 
     def attack(self, urls, payloads, query_string):
         """
@@ -597,7 +642,7 @@ class XSSer(EncoderDecoder):
         """
         for url in urls:
             self.report("\n"+'='*75)
-            self.report("\033[1;34mTarget:\033[1;m " + url + " \033[1;34m-->\033[1;m " + str(self.time))
+            self.report("Target: " + url + " --> " + str(self.time))
             self.report('='*75 + "\n")
             self.attack_url(url, payloads, query_string)
 
@@ -638,9 +683,9 @@ class XSSer(EncoderDecoder):
             shortener = ShortURLReservations(self.options.shorturls)
             shorturl = shortener.process_url(real_attack_url)
             if self.options.finalpayload or self.options.finalremote or self.options.b64 or self.options.dos:
-                print "[/] Shortered URL (Final Attack):",  "\033[1;36m" + shorturl + "\033[1;m"
+                print "[/] Shortered URL (Final Attack):",  shorturl 
             else:
-                print "[/] Shortered URL (Injection):",  "\033[1;36m" + shorturl + "\033[1;m"
+                print "[/] Shortered URL (Injection):",  shorturl 
         return real_attack_url
 
     def print_results(self):
@@ -655,7 +700,7 @@ class XSSer(EncoderDecoder):
             print "\n[I] Crawlering system cannot recieve feedback from 'spiders' on target host... try again :(\n"
             sys.exit()
         print '\n' + '='*75
-        print "[*] \033[1;37mFinal Results:\033[1;m"
+        print "[*] Final Results:"
         print '='*75 + '\n'
         total_injections = len(self.hash_found) + len(self.hash_notfound)
         print "- Injections:", total_injections
@@ -671,135 +716,139 @@ class XSSer(EncoderDecoder):
             pass
         else:
             print '='*75
-            print "[*] \033[1;37mList of possible XSS injections:\033[1;m"
+            print "[*] List of possible XSS injections:"
             print '='*75 + '\n'
-
+        #XXX need better control of flow
         for line in self.hash_found: 
             attack_url = self.apply_postprocessing(line[0], line[1], line[2], line[3], line[4], line[5], line[6])
+            if self.options.fileoutput:
+                fout = open("XSSlist.dat", "a")
             if line[2] == "xsr":
                 self.xsr_founded = self.xsr_founded + 1
                 xsr_vulnerable_host = [{"payload":str(line[4]), "target":str(line[6])}]  
                 if xsr_vulnerable_host[0]["payload"] == line[4] and xsr_vulnerable_host[0]["target"] == line[6] and self.xsr_founded > 1:
+                    self.xsr_founded = self.xsr_founded - 1
                     pass
                 else:
-                    print "[I] Target:", "\033[1;33m", line[6] ,"\033[1;m"
-                    print "[+] Injection (xsr):","\033[1;34m",str(line[6])+"/"+str(line[4]),"\033[1;m"
-                    print "[!] Special:", "Cross Site Referer Scripting!!", "[",Curl.referer,"]"
+                    print "[I] Target:", line[6] 
+                    print "[+] Injection:",str(line[6])+"/"+str(line[4]), "[", Curl.referer, "]"
+                    print "[!] Special:", "This injection looks like a Cross Site Referer Scripting"
+                    print "[-] Method:", line[2]
                     print '-'*50, "\n"
+                    if self.options.fileoutput:
+                        fout.write("\n" + "XSSer Security Report: " + str(datetime.datetime.now()) + "\n")
+                        fout.write("---------------------" + "\n")
+                        fout.write("[I] Target: " + line[6] + "\n")
+                        fout.write("[+] Injection: " + str(line[6])+"/"+str(line[4]) + "[" + Curl.referer + "]" + "\n")
+                        fout.write("[!] Special: " + "This injections looks like a Cross Site Referer Scripting" + "\n")
+                        fout.write("[-] Method: " + line[2] + "\n" + '-'*50 +"\n")
             elif line[2] == "xsa":
                 self.xsa_founded = self.xsa_founded + 1
                 xsa_vulnerable_host = [{"payload":str(line[4]), "target":str(line[6])}]
                 if xsa_vulnerable_host[0]["payload"] == line[4] and xsa_vulnerable_host[0]["target"] == line[6] and self.xsa_founded > 1:
+                    self.xsa_founded = self.xsa_founded - 1
                     pass
                 else:
-                    print "[I] Target:", "\033[1;33m", line[6] ,"\033[1;m"
-                    print "[+] Injection (xsa):","\033[1;34m",str(line[6])+"/"+str(line[4]),"\033[1;m"
-                    print "[!] Special:", "Cross Site Agent Scripting!!", "[", Curl.agent, "]"
+                    print "[I] Target:", line[6]
+                    print "[+] Injection:",str(line[6])+"/"+str(line[4]), "[",  Curl.agent, "]"
+                    print "[!] Special:", "This injection looks like a Cross Site Agent Scripting"
+                    print "[-] Method:", line[2]
                     print '-'*50, "\n"
-            elif line[2] == "coo":
-                self.coo_founded = self.coo_founded + 1
-                coo_vulnerable_host = [{"payload":str(line[4]), "target":str(line[6])}]
-                if coo_vulnerable_host[0]["payload"] == line[4] and coo_vulnerable_host[0]["target"] == line[6] and self.coo_founded > 1:
-                    pass
-                else:
-                    print "[I] Target:", "\033[1;33m", line[6] ,"\033[1;m"
-                    print "[+] Injection (coo):","\033[1;34m",str(line[6])+"/"+str(line[4]),"\033[1;m"
-                    print "[!] Special:", "Cross Site Cookie Scripting!!", "[", Curl.cookie, "]"
-                    print '-'*50, "\n"
-            else:
-                print "[I] Target:", "\033[1;33m", line[6] ,"\033[1;m"
-                print "[+] Injection:","\033[1;34m",line[0],"\033[1;m"
-            if self.options.check and self.hash_found and line[2] == "url" and line[5]["browser"] == "[hashed pre-checking injection process]":
-                print "[!] Checker: This injection looks like a -false positive- result!. Verify it manually."
-                self.false_positives = self.false_positives + 1
-
-            if self.options.dcp and not self.options.fuzz and not self.options.script:
-                print "[!] DCP Injection:", line[5]["payload"]
-                if self.options.finalpayload or self.options.finalremote or self.options.b64 or self.options.dos:
-                    print "[*] Final Attack: You cannot use a Data Control Protocol (DCP) flaw to inject other type of code."
-            else:
-                if self.options.finalpayload or self.options.finalremote or self.options.b64 or self.options.dos:
-                    print "[*] Final Attack:", "\033[1;35m",attack_url,"\033[1;m"
-
-            if line[2] == "xsr" or line[2] == "xsa" or line[2] == "coo":
-                pass
-            else:
-                print "[-] Method:", line[2]
-                print "[-] Browsers:", line[1],  "\n", '-'*50, "\n"
-
-            if self.options.tweet:
-            # XXX needs recover sns and username automatically
-                print "[!] Published on: " + "http://identi.ca/" + "xsserbot01"
-            # adding positive results to counters
-            # XXX needs verify sources better than using browser info
-            if self.options.dcp and str(line[1]) == "[Data Control Protocol Injection]":
-                self.dcp_founded = self.dcp_founded + 1
-            elif self.options.script and str(line[1]) == "[you know, is your injection :-P]":
-                self.manual_founded = self.manual_founded + 1
-            else:
-                self.auto_founded = self.auto_founded + 1
-            # output results to file	
-            if self.options.fileoutput:
-                fout = open("XSSlist.dat", "a")
-                if line[2] == "xsr":
-                    xsr_vulnerable_host = [{"payload":str(line[4]), "target":str(line[6])}]
-                    if xsr_vulnerable_host[0]["payload"] == line[4] and xsr_vulnerable_host[0]["target"] == line[6] and self.xsr_founded > 1:
-                        pass
-                    else:
-                        fout.write("\n" + "XSSer Security Report: " + str(datetime.datetime.now()) + "\n")
-                        fout.write("---------------------" + "\n")
-                        fout.write("[I] Target: " + line[6] + "\n")
-                        fout.write("[+] Injection: "+ str(line[6])+"/"+str(line[4]) + "\n")
-                        fout.write("[!] Special: "+ "Cross Site Referer Scripting!! " + "[" + Curl.referer + "]" + "\n")
-                elif line[2] == "xsa":
-                    xsa_vulnerable_host = [{"payload":str(line[4]), "target":str(line[6])}]
-                    if xsa_vulnerable_host[0]["payload"] == line[4] and xsa_vulnerable_host[0]["target"] == line[6] and self.xsa_founded > 1:
-                        pass
-                    else:
+                    if self.options.fileoutput:
                         fout.write("\n" + "XSSer Security Report: " + str(datetime.datetime.now()) + "\n")
                         fout.write("---------------------" + "\n")
                         fout.write("[I] Target: " + line[6] + "\n")
                         fout.write("[+] Injection: "+ str(line[6])+"/"+str(line[4]) + "[" + Curl.agent + "]" + "\n")
-                        fout.write("[!] Special: " + "Cross Site Agent Scripting!! " + "\n")
-                elif line[2] == "coo":
-                    coo_vulnerable_host = [{"payload":str(line[4]), "target":str(line[6])}]
-                    if coo_vulnerable_host[0]["payload"] == line[4] and coo_vulnerable_host[0]["target"] == line[6] and self.coo_founded > 1:
-                        pass
-                    else:
+                        fout.write("[!] Special: " + "This injection looks like a Cross Site Agent Scripting " + "\n")
+                        fout.write("[-] Method: " + line[2] + "\n" + '-'*50 +"\n")
+            elif line[2] == "coo":
+                self.coo_founded = self.coo_founded + 1
+                coo_vulnerable_host = [{"payload":str(line[4]), "target":str(line[6])}]
+                if coo_vulnerable_host[0]["payload"] == line[4] and coo_vulnerable_host[0]["target"] == line[6] and self.coo_founded > 1:
+                    self.coo_founded = self.coo_founded - 1
+                    pass
+                else:
+                    print "[I] Target:", line[6]
+                    print "[+] Injection:",str(line[6])+"/"+str(line[4]),"[", Curl.cookie, "]"
+                    print "[!] Special:", "This injection looks like a Cross Site Cookie Scripting"
+                    print "[-] Method:", line[2]
+                    print '-'*50, "\n"
+                    if self.options.fileoutput:
                         fout.write("\n" + "XSSer Security Report: " + str(datetime.datetime.now()) + "\n")
                         fout.write("---------------------" + "\n")
                         fout.write("[I] Target: " + line[6] + "\n")
-                        fout.write("[+] Injection: "+ str(line[6])+"/"+str(line[4]) + "[" + Curl.cooki + "]" + "\n")
-                        fout.write("[!] Special: " + "Cross Site Cookie Scripting!! " + "\n")
-                else:
+                        fout.write("[+] Injection: "+ str(line[6])+"/"+str(line[4]) + "[" + Curl.cookie + "]" + "\n")
+                        fout.write("[!] Special: " + "This injection looks like a Cross Site Cookie Scripting " + "\n")
+                        fout.write("[-] Method: " + line[2] + "\n" + '-'*50 +"\n")
+            elif line[1] == "[Data Control Protocol Injection]":
+                self.dcp_founded = self.dcp_founded + 1
+                print "[I] Target:", line[6]
+                print "[+] Injection:", str(line[6])+"/"+str(line[4]), "[", line[5]["payload"] , "]"	
+                print "[!] Special:", "This injection looks like a Data Control Protocol flaw"
+                print "[*] Final Attack: You cannot use a DCP payload to inject other type of code"
+                print "[-] Method: dcp"
+                print '-'*50, "\n"
+                if self.options.fileoutput:
                     fout.write("\n" + "XSSer Security Report: " + str(datetime.datetime.now()) + "\n")
                     fout.write("---------------------" + "\n")
                     fout.write("[I] Target: " + line[6] + "\n")
-                    fout.write("[+] Injection: "+ line[0] + "\n")
-                if self.options.check and self.hash_found and line[2] == "url" and line[5]["browser"] == "[hashed pre-checking injection process]":
-                    fout.write("[!] Checker: This injection looks like a -false positive- result!. Verify it manually." + "\n")
-                if self.options.dcp and not self.options.fuzz and not self.options.script:
-                    fout.write("[!] DCP Injection: " + line[5]["payload"] + "\n")
-                    if self.options.finalpayload or self.options.finalremote or self.options.b64 or self.options.dos:
-                        fout.write("[*] Final Attack: You cannot use a Data Control Protocol (DCP) flaw to inject other type of code." + "\n")
-                    else:
-                        if self.options.finalpayload or self.options.finalremote or self.options.b64 or self.options.dos:
-                            fout.write("[*] Final Attack: " + attack_url +"\n")
-                if line[2] == "xsr" or line[2] == "xsa" or line[2] == "coo":
-                    pass
-                else:
-                    fout.write("[-] Method: "+ line[2] + "\n")
-                    fout.write("[-] Browsers:"+ line[1]+ "\n")
-                    fout.write("="*75 + "\n")
-                if self.options.tweet:
-                # XXX needs recover sns and username automatically
+                    fout.write("[+] Injection: " + str(line[6]) + "/" + str(line[4]) + "[" + line[5]["payload"] + "]" + "\n")
+                    fout.write("[!] Special: " + "This injection looks like a Data Control Protocol flaw" + "\n")
+                    fout.write("[*] Final Attack: You cannot use a DCP payload to inject other type of code" + "\n")
+                    fout.write("[-] Method: dcp" + "\n" + '-'*50 +"\n")
+            elif line[5]["browser"] == "[hashed_precheck_system]":    
+                self.false_positives = self.false_positives + 1
+                print "[I] Target:", line[6]
+                print "[+] Injection:", str(line[0])
+                print "[!] Checker: This injection looks like a -false positive- result!. Verify it manually!"
+                print "[-] Method: hash"
+                print '-'*50, "\n"
+                if self.options.fileoutput:
+                    fout.write("\n" + "XSSer Security Report: " + str(datetime.datetime.now()) + "\n")
+                    fout.write("---------------------" + "\n")
+                    fout.write("[I] Target: " + line[6] + "\n")
+                    fout.write("[+] Injection: " + str(line[0]) + "\n")
+                    fout.write("[!] Checker: This injection looks like a -false positive- result!. Verify it manually!" + "\n")
+                    fout.write("[-] Method: hash" + "\n" + '-'*50 +"\n")
+            elif line[5]["browser"] == "[manual_injection]":
+                self.manual_founded = self.manual_founded + 1
+                print "[I] Target:", line[6]
+                print "[+] Injection:", str(line[0])
+                print "[-] Method: manual"
+                print '-'*50, "\n"
+                if self.options.fileoutput:
+                    fout.write("\n" + "XSSer Security Report: " + str(datetime.datetime.now()) + "\n")
+                    fout.write("---------------------" + "\n")
+                    fout.write("[I] Target: " + line[6] + "\n")
+                    fout.write("[+] Injection: " + str(line[0]) + "\n")
+                    fout.write("[-] Method: manual" + "\n" + '-'*50 +"\n")
+            else:
+                self.auto_founded = self.auto_founded + 1
+                print "[I] Target:", line[6]
+                print "[+] Injection:", line[0]
+                print "[*] Final Attack:", attack_url
+                print "[-] Method: xss"
+                print "[-] Browsers:", line[1],  "\n", '-'*50, "\n"
+                if self.options.fileoutput:
+                    fout.write("\n" + "XSSer Security Report: " + str(datetime.datetime.now()) + "\n")
+                    fout.write("---------------------" + "\n")
+                    fout.write("[I] Target: " + line[6] + "\n")
+                    fout.write("[+] Injection: " + line[0] + "\n")
+                    fout.write("[*] Final Attack: " +  attack_url + "\n")
+                    fout.write("[-] Method: xss" + "\n")
+                    fout.write("[-] Browsers: "+ line[1] +  "\n" + '-'*50 + "\n")
+
+            if self.options.tweet:
+            # XXX needs recover sns and username automatically
+                print "[!] Published on: " + "http://identi.ca/" + "xsserbot01"
+                if self.options.fileoutput:
                     fout.write("[!] Published on: " + "http://identi.ca/" + "xsserbot01" + "\n")
                     fout.write("="*75 + "\n")
 
 	# some statistics reports
         if self.options.statistics:
             print '='*75
-            print "[*] \033[1;37mStatistics:\033[1;m"
+            print "[*] Statistics:"
             print '='*75
             test_time = datetime.datetime.now() - self.time
             print '-'*50
@@ -815,15 +864,10 @@ class XSSer(EncoderDecoder):
                 _accur = 0
             print "Connec: %s %%" % _accur
             print '-'*50
-            vectors = self.total_vectors - self.false_positives
-            if vectors < 0:
-                vectors = 0
-            else:
-                vectors = vectors
-            total_payloads = self.false_positives + vectors + self.special_vectors
+            total_payloads = self.check_positives + self.manual_injection + self.auto_injection + self.dcp_injection + self.xsa_injection + self.xsr_injection + self.coo_injection 
             print "Total Payloads:", total_payloads
             print '-'*25
-            print "Checkers:", self.false_positives,  "|" , "Vectors:" , vectors , "|" , "Specials:" , self.special_vectors
+            print "Checker:", self.check_positives,  "|", "Manual:", self.manual_injection, "|" , "Auto:" , self.auto_injection ,"|", "DCP:", self.dcp_injection, "|" , "XSR:" , self.xsr_injection, "|", "XSA:", self.xsa_injection , "|", "COO:", self.coo_injection
             print '-'*50
             print "Total Injections:" , len(self.hash_notfound) + len(self.hash_found)
             print '-'*25
@@ -834,9 +878,12 @@ class XSSer(EncoderDecoder):
                 _accur = 0
             print "Accur: %s %%" % _accur
             print '-'*25
-            print "Founded = ", "Manual:", self.manual_founded, "|", "Auto:", self.auto_founded, "|", "DCP:", self.dcp_founded, "|" , "XSR:", self.xsr_founded, "|", "XSA:", self.xsa_founded, "|", "COO:", self.coo_founded
+            total_discovered = self.false_positives + self.manual_founded + self.auto_founded + self.dcp_founded + self.xsr_founded + self.xsa_founded + self.coo_founded
+            print "Total Discovered:", total_discovered
+            print '-'*25
+            print "Checker:", self.false_positives, "|",  "Manual:",self.manual_founded, "|", "Auto:", self.auto_founded, "|", "DCP:", self.dcp_founded, "|" , "XSR:", self.xsr_founded, "|", "XSA:", self.xsa_founded, "|", "COO:", self.coo_founded
             print '-'*50
-            print "False positives:", self.false_positives, "|", "Vulnerables:", (len(self.hash_found) - self.false_positives)
+            print "False positives:", self.false_positives, "|", "Vulnerables:", total_discovered - self.false_positives
             print '-'*25
 	    # efficiency ranking:
 	    # algor= vulnerables + false positives - failed * extras
@@ -888,7 +935,6 @@ class XSSer(EncoderDecoder):
         if not len(self.hash_found) and self.hash_notfound:
             if self.options.check:
                 print "[!] Checker: looks like your target(s) don't repeats all code received. Is good a scenario for XSSer injections...\n"
-                self.check_founded = self.check_founded + 1
                 if self.options.fuzz or self.options.dcp or self.options.script:
                     print "[I] Could not find any vulnerability!. Try another combination or hack it -manually- :)\n"
             else:

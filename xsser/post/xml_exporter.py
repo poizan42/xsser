@@ -126,11 +126,13 @@ class xml_reporting(object):
                     aurl.text = "Cross Site Cookie Scripting!! " + str(line[6]) + "/"+str(line[4])
             else:
                 aurl.text = attack_url
-	    
-            browsers = ET.SubElement(attack, "browsers")
-            browsers.text = line[1]
-            method = ET.SubElement(attack, "method")
-            method.text = line[2]
+            if line[2] == "xsr" or line[2] == "xsa" or line[2] == "coo":
+                pass
+            else:
+                browsers = ET.SubElement(attack, "browsers")
+                browsers.text = line[1]
+                method = ET.SubElement(attack, "method")
+                method.text = line[2]
 
         if not self.instance.hash_found:
             msg = ET.SubElement(results, "message")
