@@ -33,7 +33,7 @@ class Curl:
     """
     Class to control curl on behalf of the application.
     """
-    agent = 'Googlebot/2.1 (+http://www.google.com/bot.html)'
+    agent = 'Googlebot/2.1 (+http://www.google.com/bot.html'
     cookie = None
     referer = None
     headers = None
@@ -44,6 +44,7 @@ class Curl:
 
     def __init__(self, base_url="", fakeheaders=[ 'Accept: image/gif, image/x-bitmap, image/jpeg, image/pjpeg', 'Connection: Keep-Alive', 'Content-type: application/x-www-form-urlencoded; charset=UTF-8' ]):
         self.handle = pycurl.Curl()
+        self._closed = False
         self.set_url(base_url)
         self.verbosity = 0
         self.signals = 1
@@ -53,11 +54,13 @@ class Curl:
         self.headers = fakeheaders
         self.set_option(pycurl.SSL_VERIFYHOST, 1)
         self.set_option(pycurl.SSL_VERIFYPEER, 0)
+        self.set_option(pycurl.SSLVERSION, pycurl.SSLVERSION_SSLv3)
         self.set_option(pycurl.FOLLOWLOCATION, 1)
         self.set_option(pycurl.MAXREDIRS, 5)
         self.set_option(pycurl.COOKIEFILE, "/dev/null")
         self.set_timeout(30)
         self.set_option(pycurl.NETRC, 1)
+        self.set_nosignals(1)
 
         def payload_callback(x):
             self.payload += x
@@ -207,7 +210,7 @@ class Curl:
         Print selected options.
         """
         print '='*75 + '\n'
-        print "[-]Verbose: \033[1;37mON\033[1;m"
+        print "[-]Verbose: On!"
         print "[-]Cookie:", cls.cookie
         print "[-]HTTP User Agent:", cls.agent
         print "[-]HTTP Referer:", cls.referer
@@ -233,6 +236,8 @@ class Curl:
         """
         self.handle.close()
         self.header.close()
+        self._closed = True
 
     def __del__(self):
-        self.close()
+        if not self._closed:
+            self.close()

@@ -1,6 +1,26 @@
 ================================================================
-Changelog: XSSer v1.0 (xsser.sf.net)
+Changelog: XSSer v1.5 (beta) (xsser.sf.net)
 ==============================
+
+=================
+February 21, 2011:
+=================
+
+- Added heuristic test
+- Updated dorkers list
+- HTTP Response Splitting Induced code 
+- GTK+ interface
+- Geomapping
+- Multithreading workers
+- Test controllers
+- Added websockets technology (orbited)
+- Added update option
+- DoS (server) side injection
+- DCP/DOM/Induced final code
+- Code clean
+- Bugfixing
+- New options menu
+- More advanced statistics system
 
 =================
 November 7, 2010:

