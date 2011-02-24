@@ -1,0 +1,96 @@
+xsser (1.1-1) unstable; urgency=low
+
+  * Added GTK option  
+  * Heuristic test 
+  * HTTP Response Splitting
+  * DoS (Server) injection 
+  * DCP/DOM Final code injections
+  * Update option
+  * Code clean 
+  * Bugfixing
+  * New options menu
+  * More advanced statistics system
+  * Updated dorkerers list.
+
+ -- psy <epsylon@riseup.net>  Tue, 15 Feb 2010 00:00:00 +0000 
+
+xsser (1.0-2) stable; urgency=low
+
+  * Added "final remote injections" option
+  * Cross Flash Attack! 
+  * Cross Frame Scripting
+  * Data Control Protocol Injections  
+  * Base64 (rfc2397) PoC
+  * OnMouseMove PoC
+  * Browser launcher
+  * Code clean
+  * Bugfixing
+  * New options menu
+  * Pre-check system
+  * Crawler spidering clones
+  * More advanced statistics system
+  * "Mana" ouput results
+
+ -- psy <epsylon@riseup.net>  Mon, 07 Nov 2010 00:00:00 +0000 
+
+xsser (1.0-1) unstable; urgency=low
+
+  * Added a-xml exporter 
+  * ImageXSS 
+  * New dorker engines (total 10) 
+  * Core clean 
+  * Bugfixing 
+  * Social Networking auto-publisher -
+  * Started -federated- XSS (full disclosure) pentesting botnet.
+
+      * http://identi.ca/xsserbot01
+      * http://twitter.com/xsserbot01
+
+ -- psy <epsylon@riseup.net>  Mon, 22 Sep 2010 00:00:00 +0000
+
+xsser (0.7) unstable; urgency=low
+
+  * Added attack payloads to fuzzer (26 new injections) 
+  * POST 
+  * Statistics 
+  * URL Shorteners 
+  * IP Octal 
+  * Post-processing payloading 
+  * DOM Shadows! 
+  * Cookie injector 
+  * Browser DoS (Denegation of Service).
+
+ -- psy <epsylon@riseup.net>  Mon, 20 Aug 2010 00:00:00 +0000
+
+xsser (0.6) unstable; urgency=low
+
+  * Dorking 
+  * Crawling 
+  * IP DWORD + Core clean.
+
+ -- psy <epsylon@riseup.net>  Mon, 01 Jul 2010 00:00:00 +0000
+
+xsser (0.5) unstable; urgency=low
+
+  * HTTPS implemented + patched bugs.
+
+ -- psy <epsylon@riseup.net>  Mon, 19 Apr 2010 00:00:00 +0000
+
+xsser (0.4) unstable; urgency=low
+
+  * Added "inject your own payload" option. Can be used with all character encoding -bypassers- of XSSer.
+
+ -- psy <epsylon@riseup.net>  Mon, 22 Mar 2010 00:00:00 +0000
+
+xsser (0.3) unstable; urgency=low
+
+  * Added attack payloads to fuzzer (62 different XSS injections).
+
+ -- psy <epsylon@riseup.net>  Mon, 18 Mar 2010 00:00:00 +0000
+
+xsser (0.2) unstable; urgency=low
+
+  * Added new payload encoders to bypass filters.
+
+ -- psy <epsylon@riseup.net>  Mon, 16 Mar 2010 00:00:00 +0000
+
