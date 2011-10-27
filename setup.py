@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 import os
 
 data_files = []
@@ -7,11 +7,15 @@ image_files = []
 doc_files = []
 gtk_doc_files = []
 for afile in os.listdir('doc'):
-    doc_files.append('doc/' + afile)
+    #doc_files.append('doc/' + afile)
+    if afile != '.svn':
+        doc_files.append('doc/' + afile)
 for afile in os.listdir('gtk/docs'):
-    gtk_doc_files.append('gtk/docs/' + afile)
+    #gtk_doc_files.append('gtk/docs/' + afile)
+    if afile != '.svn':
+        gtk_doc_files.append('gtk/docs/' + afile)
 
-data_files = ['gtk/images/world.png','gtk/images/xsser.jpg',
+data_files = ['gtk/images/world.png', 'gtk/images/xsser.jpg',
               'gtk/images/xssericon_16x16.png',
               'gtk/images/xssericon_24x24.png']
 gtk_files = ['gtk/xsser.ui']
