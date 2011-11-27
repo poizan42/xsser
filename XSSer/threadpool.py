@@ -5,7 +5,7 @@ $Id$
 
 This file is part of the xsser project, http://xsser.sourceforge.net.
 
-Copyright (c) 2010 psy <root@lordepsylon.net>
+Copyright (c) 2011/2012 psy <root@lordepsylon.net> - <epsylon@riseup.net>
 
 xsser is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
@@ -68,7 +68,6 @@ __version__ = '1.2.7'
 __revision__ = "$Revision: 416 $"
 __date__ = "$Date: 2009-10-07 05:41:27 +0200 (Wed, 07 Oct 2009) $"
 __license__ = "MIT license"
-
 
 # standard library modules
 import sys

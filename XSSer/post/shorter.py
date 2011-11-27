@@ -5,7 +5,7 @@ $Id$
 
 This file is part of the xsser project, http://xsser.sourceforge.net.
 
-Copyright (c) 2010 psy <root@lordepsylon.net>
+Copyright (c) 2011/2012 psy <root@lordepsylon.net> - <epsylon@riseup.net>
 
 xsser is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
@@ -44,7 +44,7 @@ class ShortURLReservations(object):
             self._method = 'get'
         elif self._service == 'is.gd':
             self._url = 'http://is.gd/create.php'
-            self._par = 'URL'
+            self._par = 'url'
             self._method = 'post'
 	
     def process_url(self, url):

@@ -1,6 +1,33 @@
 ================================================================
-Changelog: XSSer v1.5 (beta) (xsser.sf.net)
+Changelog: XSSer v1.6 (beta) (xsser.sf.net)
 ==============================
+
+=================
+November 28, 2011:
+=================
+
+- Added Drop Cookie option
+- Added Random IP X-Forwarded-For an X-Client-IP option
+- Added GSS and NTLM authentication methods
+- Added Ignore proxy option
+- Added TCP-NODELAY option
+- Added Follow redirects option
+- Added Follow redirects limiter parameter
+- Added Auto-HEAD precheck system
+- Added No-HEAD option
+- Added Isalive option
+- Added Check at url option (Blind XSS)
+- Added Reverse Check parameter
+- Added PHPIDS (v.0.6.5) exploit
+- Added More vectors to auto-payloading
+- Added HTML5 studied vectors
+- Fixed Different bugs on core
+- Fixed Curl handlerer options
+- Fixed Dorkerers system
+- Fixed Bugs on results propagation
+- Fixed POST requests
+- Added New features to GTK controller
+- Added Detailed views to GTK interface
 
 =================
 February 21, 2011:

@@ -11,14 +11,14 @@ and twitter (http://twitter.com/)
 This bot is completly Public. All publised data will be accessed from Internet 
 
 Please report your results using -automatic- format to create a good XSS pentesting Reporting Archive. 
-Or try to create your own bot/s changing some configuration parameters and federate it (all us you want)
-to this "2 first -replicants-: xsserbot01" ;) 
+Or try to create your own bot/s changing some configuration parameters and federate it (all as you want)
+to this "2 first -replicants-: xsser-greyswarm" ;) 
 								             
-xsserbot01: 
-http://identi.ca/xsserbot01
+xsser-greyswarm: 
+http://identi.ca/xsser-greyswarm
 
-xsserbot01(clone): 
-http://twitter.com/xsserbot01
+xsser-greyswarm(twitter clon): 
+http://twitter.com/xsser-greyswarm
 
 To launch you own -bot-, first create an account on identica/twitter, 
 and after change this values with your data:
@@ -33,7 +33,7 @@ Happy "Cross" Federated Hacking. ;)
 -----
 This file is part of the xsser project, http://xsser.sourceforge.net.
 
-Copyright (c) 2010 psy <root@lordepsylon.net>
+Copyright (c) 2011/2012 psy <root@lordepsylon.net> - <epsylon@riseup.net>
 
 xsser is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
@@ -70,5 +70,5 @@ class publisher(object):
 
 if __name__ == "__main__":
     publish = publisher(object)
-    publish.send_to_identica('XSSer a.ka Cross Site -Scripter- more info: http://xsser.sf.net', 'xsserbot01', '8vnVw8wvs', 'http://identi.ca/api/statuses/update.xml')
+    publish.send_to_identica('XSSer v1.6b -Grey Swarm!- Website: http://xsser.sf.net', 'xsserbot01', '8vnVw8wvs', 'http://identi.ca/api/statuses/update.xml')
 

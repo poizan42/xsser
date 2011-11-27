@@ -5,7 +5,7 @@ PYTHON=`which python`
 DESTDIR=/
 BUILDIR=$(CURDIR)/debian/xsser
 PROJECT=xsser
-VERSION=0.3.0
+VERSION=0.4.0
 
 all:
 	@echo "make source - Create source package"

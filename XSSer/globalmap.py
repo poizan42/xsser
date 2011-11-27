@@ -5,7 +5,7 @@ $Id$
 
 This file is part of the xsser project, http://xsser.sourceforge.net.
 
-Copyright (c) 2010 psy <root@lordepsylon.net>
+Copyright (c) 2011/2012 psy <root@lordepsylon.net> - <epsylon@riseup.net>
 
 xsser is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
@@ -98,12 +98,19 @@ class DownloadThread(Thread):
             os.makedirs(os.path.dirname(geo_db_path))
         self._parent.report_state('getting city database', 0.0)
         try:
-            urllib.urlretrieve('http://delcorp.dyne.org/xsser/GeoLiteCity.dat.gz',
-                               #urllib.urlretrieve('http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz',
+            urllib.urlretrieve('http://xsser.sf.net/map/GeoLiteCity.dat.gz',
                            geo_db_path+'.gz', reportfunc)
         except:
-            self._parent.report_state('error downloading map', 0.0)
-            self._map.geomap_failed()
+            try:
+                urllib.urlretrieve('http://delcorp.dyne.org/xsser/GeoLiteCity.dat.gz',
+                           geo_db_path+'.gz', reportfunc)
+            except:
+                try:
+                    urllib.urlretrieve('http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz',
+                           geo_db_path+'.gz', reportfunc)
+                except:
+                    self._parent.report_state('error downloading map', 0.0)
+                    self._map.geomap_failed()
         else:
             self._parent.report_state('map downloaded', 0.0)
             f_in = gzip.open(geo_db_path+'.gz', 'rb')
@@ -640,6 +647,3 @@ class GlobalMap(gtk.DrawingArea, XSSerReporter):
         if x+20 > self._max_x:
             self._max_x = x+20
         return x, y
-
-
-

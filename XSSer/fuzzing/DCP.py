@@ -3,7 +3,7 @@ $Id$
 
 This file is part of the xsser project, http://xsser.sourceforge.net.
 
-Copyright (c) 2010 psy <root@lordepsylon.net>
+Copyright (c) 2011/2012 psy <root@lordepsylon.net> - <epsylon@riseup.net>
 
 xsser is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
@@ -22,7 +22,7 @@ Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ## XXSer.py @@ DCP vectors @@ psy
 #
 ## This file contains different XSS vectors to inject in the Data Control Protocol (DCP).
-## If you have some new vectors, please email me to [root@lordepsylon.net] and i will add your list to XSSer framework.
+## If you have some new vectors, please email me to [root@lordepsylon.net - epsylon@riseup.net] and will be added to XSSer framework.
 ## Thats all.
 ###
 ## Happy Cross Hacking! ;)

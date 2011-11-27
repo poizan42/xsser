@@ -5,7 +5,7 @@ $Id$
 
 This file is part of the xsser project, http://xsser.sourceforge.net.
 
-Copyright (c) 2010 psy <root@lordepsylon.net>
+Copyright (c) 2011/2012 psy <root@lordepsylon.net> - <epsylon@riseup.net>
 
 xsser is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
@@ -35,6 +35,9 @@ class xml_reporting(object):
         self.xsr_founded = 0
         self.xsa_founded = 0
         self.coo_founded = 0
+        self.dcp_founded = 0
+        self.dom_founded = 0
+        self.ind_founded = 0
 
     def print_xml_results(self, filename):
         root = ET.Element("report")
@@ -81,9 +84,9 @@ class xml_reporting(object):
             othercon.text = str(self.instance.other_connection)
             st_accur = ET.SubElement(con, "accur")
             try:
-                st_accur.text = "%s %%" % (str((self.instance.success_connection * 100) / total_connections), )
+                st_accur.text = "%s %%" % (str(((len(self.instance.success_connection) * 100) / total_connections)), )
             except ZeroDivisionError:
-                st_accur.text= "0 %"
+                st_accur.text = "0 %"
             st_inj = ET.SubElement(stats, "injections")
             st_inj_total = ET.SubElement(st_inj, "total")
             st_inj_total.text = str(total_injections)
@@ -102,7 +105,10 @@ class xml_reporting(object):
             url_ = ET.SubElement(attack, "injection")
             url_.text = line[0]
             attack_url = self.instance.apply_postprocessing(line[0], line[1], line[2], line[3], line[4], line[5], line[6])
-            aurl = ET.SubElement(attack, "finalattack")
+            if self.instance.options.onm or self.instance.options.ifr or self.instance.options.b64  or self.instance.options.dos or self.instance.options.doss or self.instance.options.finalremote or self.instance.options.finalpayload:
+                aurl = ET.SubElement(attack, "finalattack")
+            else:
+                aurl = None
             if line[2] == "xsr":
                 self.xsr_founded = self.xsr_founded +1
                 xsr_vulnerable_host = [{"payload":str(line[4]), "target":str(line[6])}]
@@ -124,9 +130,33 @@ class xml_reporting(object):
                     pass
                 else:
                     aurl.text = "Cross Site Cookie Scripting!! " + str(line[6]) + "/"+str(line[4])
+            elif line[2] == "dcp":
+                self.dcp_founded = self.dcp_founded +1
+                dcp_vulnerable_host = [{"payload":str(line[4]), "target":str(line[6])}]
+                if dcp_vulnerable_host[0]["payload"] == line[4] and dcp_vulnerable_host[0]["target"] == line[6] and self.dcp_founded > 1:
+                    pass
+                else:
+                    aurl.text = "Data Control Protocol injections!! " + str(line[6]) + "/"+str(line[4])
+            elif line[2] == "dom":
+                self.dom_founded = self.dom_founded +1
+                dom_vulnerable_host = [{"payload":str(line[4]), "target":str(line[6])}]
+                if dom_vulnerable_host[0]["payload"] == line[4] and dom_vulnerable_host[0]["target"] == line[6] and self.dom_founded > 1:
+                    pass
+                else:
+                    aurl.text = "Document Object Model injections!! " + str(line[6]) + "/"+str(line[4])
+            elif line[2] == "ind":
+                self.ind_founded = self.ind_founded +1
+                ind_vulnerable_host = [{"payload":str(line[4]), "target":str(line[6])}]
+                if ind_vulnerable_host[0]["payload"] == line[4] and ind_vulnerable_host[0]["target"] == line[6] and self.ind_founded > 1:
+                    pass
+                else:
+                    aurl.text = "HTTP Response Splitting Induced code!! " + str(line[6]) + "/"+str(line[4])
             else:
-                aurl.text = attack_url
-            if line[2] == "xsr" or line[2] == "xsa" or line[2] == "coo":
+                if aurl == None:
+                    pass
+                else:
+                    aurl.text = attack_url
+            if line[2] == "xsr" or line[2] == "xsa" or line[2] == "coo" or line[2] == "dcp" or line[2] == "dom" or line[2] == "ind":
                 pass
             else:
                 browsers = ET.SubElement(attack, "browsers")

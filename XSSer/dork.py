@@ -5,7 +5,7 @@ $Id$
 
 This file is part of the xsser project, http://xsser.sourceforge.net.
 
-Copyright (c) 2010 psy <root@lordepsylon.net>
+Copyright (c) 2011/2012 psy <root@lordepsylon.net> - <epsylon@riseup.net>
 
 xsser is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
@@ -108,20 +108,30 @@ class Dorker(object):
             search_url = "http://www.yebol.com/a.jsp?x=0&y=0&key=" + urllib2.quote(search)
         elif self._engine == 'youdao':
             search_url = "http://www.youdao.com/search?q=" + urllib2.quote(search)
-        elif self._engine == 'ask': # works at 20-02-2011
-            def raw_extract(html_data, encoding):
-                results = []
-                prevline = ""
-                for line in html_data.split("\n"):
-                    if 'class="title txt_lg"' in line and "http" in prevline:
-                        href = prevline[prevline.find("http"):prevline.find('"',
-                                                                            prevline.find("http")+10)]
-                        results.append({'href': href})
-                    prevline = line
-                return results
-            search_url = "http://www.ask.com/web?q=" + urllib2.quote(search)
-        elif self._engine == 'google':
-            search_url = "http://www.google.com/search?q=" + urllib2.quote(search)
+        #elif self._engine == 'ask': # not works
+        #    def raw_extract(html_data, encoding):
+        #        results = []
+        #        prevline = ""
+        #        for line in html_data.split("\n"):
+        #            if 'class="title txt_lg"' in line and "http" in prevline:
+        #                href = prevline[prevline.find("http"):prevline.find('"',
+        #                                                                    prevline.find("http")+10)]
+        #                results.append({'href': href})
+        #            prevline = line
+        #        return results
+        #    search_url = "http://www.ask.com/web?q=" + urllib2.quote(search)
+        elif self._engine == 'google': # works at 11/11/2011
+            #def raw_extract(html_data, encoding):
+            #    results = []
+            #    prevline = ""
+            #    for line in html_data.split("\n"):
+            #        if 'class="r"' in line and "http" in prevline:
+            #            href = prevline[prevline.find("http"):prevline.find('"',
+            #                                                                prevline.find("http")+10)]
+            #            results.append({'href': href})
+            #        prevline = line
+            #    return results
+            search_url = "https://encrypted.google.com/search?hl=en&q=" + urllib2.quote(search)
         elif self._engine == 'yahoo': # works at 20-02-2011
             def raw_extract(html_data, encoding):
                 results = []
@@ -182,15 +192,17 @@ class Dorker(object):
             search_url = "http://hakia.com/search?q=" + urllib2.quote(search)
         elif self._engine == 'leapfish':
             search_url = "http://www.leapfish.com/web.aspx?q=" + urllib2.quote(search)
-        elif self._engine == 'webcrawler': # works at 20-02-2011
-            urlpar = "rawURL"
-            search_url = "http://www.webcrawler.com/webcrawler203/ws/results/Web/" + urllib2.quote(search) + "/1/417/TopNavigation/Relevance/iq=true/zoom=off/_iceUrlFlag=7?_IceUrl=true"
+        #elif self._engine == 'webcrawler': # works at 20-02-2011
+        #    urlpar = "rawURL"
+        #    search_url = "http://www.webcrawler.com/webcrawler203/ws/results/Web/" + urllib2.quote(search) + "/1/417/TopNavigation/Relevance/iq=true/zoom=off/_iceUrlFlag=7?_IceUrl=true"
         elif self._engine == 'excite':
             search_url = "http://msxml.excite.com/excite/ws/results/Web/" + urllib2.quote(search) + "/1/0/0/Relevance/iq=true/zoom=off/_iceUrlFlag=7?_IceUrl=true" 
         elif self._engine == 'yolink':
             search_url = "http://cloud.yolink.com/search/search?keywords=" + urllib2.quote(search)
         elif self._engine == 'lycos':
             search_url = "http://search.lycos.com/?tab=web&query=" + urllib2.quote(search)
+        else:
+            print "\nThis search engine is not allowed. Check dork.py file to see a complete list\n"
         try:
             self.search_url = search_url
             url = urllib2.urlopen(urllib2.Request(search_url,
@@ -251,8 +263,8 @@ class Dorker(object):
         return found_links
 
 if __name__ == '__main__':
-    for a in ['ask', 'altavista', 'yahoo', 'baidu', 'bing', 'webcrawler',
-              'search', 'yandex']:
+    for a in ['google', 'altavista', 'yahoo', 'baidu', 'bing', 'webcrawler',
+              'youdao', 'yandex']:
         dork = Dorker(a)
         res = dork.dork("lorea")
         print a,len(res)

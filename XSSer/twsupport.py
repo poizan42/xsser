@@ -5,7 +5,7 @@ $Id$
 
 This file is part of the xsser project, http://xsser.sourceforge.net.
 
-Copyright (c) 2010 psy <root@lordepsylon.net>
+Copyright (c) 2011/2012 psy <root@lordepsylon.net> - <epsylon@riseup.net>
 
 xsser is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
@@ -34,7 +34,7 @@ except:
     orbited_main = None
     traceback.print_exc()
 
-print "\nXSSer: The Mosquito Swarm Edition!\n"
+print "\nXSSer v1.6b: The Mosquito 'Grey Swarm'\n"
 print "Daemon(s): ready!", "//" , "Interfaz: ready!\n"
 print "Connect to http://127.0.0.1:19084/static/ via Web or Telnet to manage your swarm\n"
 print "Listening..."

