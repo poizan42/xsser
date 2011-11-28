@@ -1075,7 +1075,7 @@ class xsser(EncoderDecoder, XSSerReporter):
             tok_url = dest_url.replace('PAYLOAD', self_url)
         elif 'HREF' in dest_url and 'PAYLOAD' in dest_url:
             tok_url = dest_url.replace('PAYLOAD', self_url)
-        elif 'url' in destu_url and 'PAYLOAD' in dest_url:
+        elif 'url' in dest_url and 'PAYLOAD' in dest_url:
             tok_url = dest_url.replace('PAYLOAD', self_url)
 
         self.final_attacks[hashing] = {'url': tok_url}
