@@ -861,7 +861,7 @@
                                             <child>
                                               <object class="GtkLabel" id="label26">
                                                 <property name="visible">True</property>
-                                                <property name="label" translatable="yes">XSSer by default makes HEAD connections to each target before starting to inject parameters
+                                                <property name="label" translatable="yes">XSSer by default makes HEAD connections to each target before starting to inject parameters. 
 You can ignore this pre-check using the No-HEAD option</property>
                                               </object>
                                               <packing>
@@ -1150,7 +1150,7 @@ You can ignore this pre-check using the No-HEAD option</property>
                                                 <child>
                                                   <object class="GtkLabel" id="label36">
                                                     <property name="visible">True</property>
-                                                    <property name="label" translatable="yes">Alternative URL:</property>
+                                                    <property name="label" translatable="yes">URL:</property>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">False</property>
@@ -1167,7 +1167,6 @@ You can ignore this pre-check using the No-HEAD option</property>
                                                     <property name="width_chars">30</property>
                                                   </object>
                                                   <packing>
-                                                    <property name="expand">False</property>
                                                     <property name="padding">10</property>
                                                     <property name="position">1</property>
                                                   </packing>
@@ -1183,7 +1182,7 @@ You can ignore this pre-check using the No-HEAD option</property>
                                                 <child>
                                                   <object class="GtkLabel" id="label46">
                                                     <property name="visible">True</property>
-                                                    <property name="label" translatable="yes">Use method:</property>
+                                                    <property name="label" translatable="yes">Method:</property>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">False</property>
@@ -1212,7 +1211,7 @@ You can ignore this pre-check using the No-HEAD option</property>
                                                 <child>
                                                   <object class="GtkLabel" id="label47">
                                                     <property name="visible">True</property>
-                                                    <property name="label" translatable="yes">Use Payload:</property>
+                                                    <property name="label" translatable="yes">Payload:</property>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">False</property>
@@ -1227,10 +1226,9 @@ You can ignore this pre-check using the No-HEAD option</property>
                                                     <property name="tooltip_text" translatable="yes">check responses from target(s) using an alternative payload 
 (default: same than first injection)</property>
                                                     <property name="invisible_char">&#x25CF;</property>
-                                                    <property name="width_chars">30</property>
+                                                    <property name="width_chars">22</property>
                                                   </object>
                                                   <packing>
-                                                    <property name="expand">False</property>
                                                     <property name="padding">10</property>
                                                     <property name="position">1</property>
                                                   </packing>

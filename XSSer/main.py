@@ -1891,6 +1891,9 @@ class xsser(EncoderDecoder, XSSerReporter):
                     else:
                         self._webbrowser.open(attack_url)
 
+        # heuristic always with statistics
+        if self.options.heuristic:
+            self.options.statistics = True
 	# some statistics reports
         if self.options.statistics:
             # heuristic test results
@@ -1899,8 +1902,8 @@ class xsser(EncoderDecoder, XSSerReporter):
                 self.report("[*] Heuristic:")
                 self.report('='*75)
                 self.report('-'*50)
-                self.report('  ', "<not-filt>", "<filtered>", " =" , "ASCII",
-                            "+", "UNE/HEX", "+", "DEC")
+                self.report('  ', "    <not-filt>", "   <filtered>", "    =" , "    ASCII",
+                            "   +", "   UNE/HEX", "   +", "   DEC")
                 # semicolon results
                 heuris_semicolon_total_founded = self.heuris_semicolon_notfounded + self.heuris_une_semicolon_founded + self.heuris_dec_semicolon_founded
                 self.report('; ',   "       ", self.heuris_semicolon_founded, "            ", heuris_semicolon_total_founded, "               ",
@@ -1922,14 +1925,14 @@ class xsser(EncoderDecoder, XSSerReporter):
                             self.heuris_dec_slash_founded)
                 # minor results
                 heuris_minor_total_founded = self.heuris_minor_notfounded + self.heuris_une_minor_founded + self.heuris_dec_minor_founded
-                self.report("< ",   "     ", self.heuris_minor_founded, "            ",
+                self.report("< ",   "       ", self.heuris_minor_founded, "            ",
                             heuris_minor_total_founded, "               ",
                             self.heuris_minor_notfounded, "            ",
                             self.heuris_une_minor_founded, "           ",
                             self.heuris_dec_minor_founded)
                 # mayor results
                 heuris_mayor_total_founded = self.heuris_mayor_notfounded + self.heuris_une_mayor_founded + self.heuris_dec_mayor_founded
-                self.report("> ",   "     ", self.heuris_mayor_founded, "            ",
+                self.report("> ",   "       ", self.heuris_mayor_founded, "            ",
                             heuris_mayor_total_founded, "               ",
                             self.heuris_mayor_notfounded, "            ",
                             self.heuris_une_mayor_founded, "           ",
@@ -1949,7 +1952,7 @@ class xsser(EncoderDecoder, XSSerReporter):
                             self.heuris_dec_colon_founded)
                 # equal results
                 heuris_equal_total_founded = self.heuris_equal_notfounded + self.heuris_une_equal_founded + self.heuris_dec_equal_founded
-                self.report("= ",   "     ", self.heuris_equal_founded, "            ",
+                self.report("= ",   "       ", self.heuris_equal_founded, "            ",
                             heuris_equal_total_founded, "               ",
                             self.heuris_equal_notfounded, "            ",
                             self.heuris_une_equal_founded, "           ",

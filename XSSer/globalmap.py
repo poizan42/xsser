@@ -112,7 +112,7 @@ class DownloadThread(Thread):
                     self._parent.report_state('error downloading map', 0.0)
                     self._map.geomap_failed()
         else:
-            self._parent.report_state('map downloaded', 0.0)
+            self._parent.report_state('map downloaded (restart XSSer!!!!)', 0.0)
             f_in = gzip.open(geo_db_path+'.gz', 'rb')
             f_out = open(geo_db_path, 'wb')
             f_out.write(f_in.read())

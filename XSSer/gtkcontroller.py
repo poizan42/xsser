@@ -62,6 +62,8 @@ class Controller(XSSerReporter):
         self.fill_combos()
         wTree.connect_signals(self)
         window = wTree.get_object(window)
+        window.set_size_request(800, 600)
+        window.maximize()
         window.show()
         self._window = window
         self.output = wTree.get_object('textview_main')
