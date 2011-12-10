@@ -1503,18 +1503,6 @@ class Controller(XSSerReporter):
             if localonly1.get_active() == True:
                 command.append("--Cl")        
 
-        # get disclosure test mode
-        target_entry = self.wTree.get_object('disclosure')
-        tweettags = self.wTree.get_object('tweettags')
-        if target_entry.get_active() == False:
-            pass
-        else:
-            command.append("--tweet")
-            if tweettags.get_text() == "":
-                pass
-            else:
-                command.append("--tweet-tags")
-                command.append(tweettags.get_text())
         # get statistics
         target_entry = self.wTree.get_object('statistics')
         if target_entry.get_active() == False:
@@ -1920,6 +1908,18 @@ class Controller(XSSerReporter):
         else:
             command.append("--xml") 
             command.append("xsser-test:" + str(datetime.datetime.now()) + ".xml")
+        # get Publish option
+        target_entry = self.wTree.get_object('publish_identica')
+        tweettags = self.wTree.get_object('tweettags')
+        if target_entry.get_active() == False:
+            pass
+        else:
+            command.append("--tweet")
+            if tweettags.get_text() == "":
+                pass
+            else:
+                command.append("--tweet-tags")
+                command.append(tweettags.get_text())
         # generate wizard commands
         # step 1
         if self.target_option != "":
