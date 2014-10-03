@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: iso-8859-15 -*-
+# vim: ai et sw=4 ts=4 fileencodings=iso-8859-15
 """
 $Id$
 
@@ -99,12 +100,17 @@ class Crawler(object):
     def cancel(self):
         self._armed = False
 
-    def crawl(self, path, depth=3, width=0, local_only=True):
+    def crawl(self, path, depth=3, width=0, local_only=True, getdata=True, postdata=False, allowpost=None):
         """
         setup and perform a crawl on the given url.
         """
         if not self._armed:
             return []
+        if allowpost == None:
+            allowpost = postdata
+        self.getdata = getdata
+        self.postdata = postdata
+        self.allowpost = allowpost
         parsed = urllib2.urlparse.urlparse(path)
         basepath = parsed.scheme + "://" + parsed.netloc
         self._parse_external = not local_only
@@ -247,6 +253,15 @@ class Crawler(object):
                 next_job = self._to_crawl.pop()
                 self._crawl(*next_job)
 
+    def _append_pars(self, url, pars):
+        enc = urllib.urlencode(pars)
+        lastSlash = url.rfind('/')
+        lastQM = url.rfind('?', lastSlash + 1)
+        if lastQM > -1:
+            return url + '&' + enc
+        else:
+            return url + '?' + enc
+
     #def _get_done(self, depth, width, request, result):
     def _get_done(self, basepath, depth, width, path, html_data, content_type): # request, result):
         #print("get result")
@@ -276,12 +291,15 @@ class Crawler(object):
 
             for form in forms:
                 pars = {}
+                if form.has_key("method"):
+                    method = form["method"].lower()
+                else:
+                    method = "get"
                 if form.has_key("action"):
                     action_path = urlparse.urljoin(path, form["action"])
                 else:
                     action_path = path
                 for input_par in form.findAll('input'):
-
                     if not input_par.has_key("name"):
                         continue
                     value = "foo"
@@ -290,11 +308,12 @@ class Crawler(object):
                     pars[input_par["name"]] = value
                 for input_par in form.findAll('select'):
                     pars[input_par["name"]] = "1"
-                if pars:
-                    links.append({"url":action_path + '?' + urllib.urlencode(pars)})
+                if pars and method == "get":
+                    links.append({"url": self._append_pars(action_path, pars), "method":method})
                 else:
-                    self.report("form with no pars")
-                    links.append({"url":action_path})
+                    if not pars:
+                        self.report("form with no pars")
+                    links.append({"url":action_path, "method":method, "pars":pars})
             links += self._emergency_parse(html_data, len(links))
         if self.verbose == 2:
             self.report(" "*(self._depth-depth) + path +" "+ str(len(links)))
@@ -304,13 +323,14 @@ class Crawler(object):
         if len(links) > self._max:
             links = links[:self._max]
         for a in links:
+            print "a: " + repr(a)
             try:
-                href = str(a['href'].encode('utf-8'))
+                if 'href' in a:
+                  href = a['href']
+                else:
+                  href = a['url']
             except KeyError:
                 # this link has no href
-                continue
-            except:
-                # can't decode or something darker..
                 continue
             if href.startswith("javascript") or href.startswith('mailto:'):
                 continue
@@ -319,6 +339,8 @@ class Crawler(object):
                 continue
             href = href.split('#',1)[0]
             scheme_rpos = href.rfind('http://')
+            # print "path: " + path
+            # print "basepath: " + basepath
             if not scheme_rpos in [0, -1]:
                 # looks like some kind of redirect so we try both too ;)
                 href1 = href[scheme_rpos:]

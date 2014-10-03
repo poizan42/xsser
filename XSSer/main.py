@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: iso-8859-15 -*-
+# vim: ai et sw=4 ts=4 fileencodings=iso-8859-15
 """
 $Id$
 
@@ -120,7 +121,7 @@ class xsser(EncoderDecoder, XSSerReporter):
         self.forwarded_connection = 0
         self.other_connection = 0
 
-	# some statistics counters for payloads
+    # some statistics counters for payloads
         self.xsr_injection = 0
         self.xsa_injection = 0
         self.coo_injection = 0
@@ -142,7 +143,7 @@ class xsser(EncoderDecoder, XSSerReporter):
         self.httpsr_founded = 0
         self.false_positives = 0
 
-	# some statistics counters for heuristic parameters
+    # some statistics counters for heuristic parameters
         self.heuris_backslash_founded = 0
         self.heuris_une_backslash_founded = 0
         self.heuris_dec_backslash_founded = 0
@@ -250,14 +251,14 @@ class xsser(EncoderDecoder, XSSerReporter):
         """
         options = self.options
         for opt in ['cookie', 'agent', 'referer',\
-			'headers', 'atype', 'acred', 'acert',
-			'proxy', 'ignoreproxy', 'timeout', 
+            'headers', 'atype', 'acred', 'acert',
+            'proxy', 'ignoreproxy', 'timeout', 
                         'delay', 'tcp_nodelay', 'retries', 
                         'xforw', 'xclient', 'threads', 
                         'dropcookie', 'followred', 'fli',
                         'nohead', 'isalive', 'alt', 'altm',
                         'ald', 'jumper'
-			]:
+            ]:
             if hasattr(options, opt) and getattr(options, opt):
                 setattr(Curl, opt, getattr(options, opt))
 
@@ -267,7 +268,7 @@ class xsser(EncoderDecoder, XSSerReporter):
         Process payload options and make up the payload list for the attack.
         """
         options = self.options
-	# payloading sources
+    # payloading sources
         payloads_fuzz = XSSer.fuzzing.vectors.vectors
         payloads_dcp = XSSer.fuzzing.DCP.DCPvectors
         payloads_dom = XSSer.fuzzing.DOM.DOMvectors
@@ -284,6 +285,7 @@ class xsser(EncoderDecoder, XSSerReporter):
                 if options.dom:
                     payloads = payloads + payloads_dom
             return payloads
+        # yum, spaghetti!
         if options.fuzz:
             payloads = payloads_fuzz
             if options.dcp:
@@ -461,7 +463,7 @@ class xsser(EncoderDecoder, XSSerReporter):
 
         elif not options.fuzz and not options.dcp and not options.script and not options.hash and not options.inducedcode and not options.heuristic and not options.dom:
             payloads = [{"payload":'">PAYLOAD',
-			 "browser":"[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"
+             "browser":"[IE7.0|IE6.0|NS8.1-IE] [NS8.1-G|FF2.0] [O9.02]"
                          }]
         else:
             payloads = checker_payload
@@ -479,8 +481,8 @@ class xsser(EncoderDecoder, XSSerReporter):
 
     def process_ipfuzzing_octal(self, text):
         """
-       	Mask ips in given text to Octal
-	    """
+        Mask ips in given text to Octal
+        """
         ips = re.findall("\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", text)
         for ip in ips:
             text = text.replace(ip, str(self._ipOctalEncode(ip)))
@@ -847,7 +849,7 @@ class xsser(EncoderDecoder, XSSerReporter):
         else:
             self.report("[+] Browser Support: " + payload['browser'])
         
-	# statistics injections counters
+    # statistics injections counters
         if payload['browser']=="[hashed_precheck_system]" or payload['browser']=="[Heuristic test]":
             self.check_positives = self.check_positives + 1
         elif payload['browser']=="[Data Control Protocol Injection]":
@@ -934,7 +936,7 @@ class xsser(EncoderDecoder, XSSerReporter):
                         self.heuris_dec_doublecolon_founded = self.heuris_dec_doublecolon_founded + 1
                     elif heuristic_param == "&#61":
                         self.heuris_dec_equal_founded = self.heuris_dec_equal_founded + 1
-	
+    
                     self.add_success(dest_url, payload, hashing, query_string, orig_url, attack_type)
                 else:
                     if heuristic_param == "\\":
@@ -1061,7 +1063,7 @@ class xsser(EncoderDecoder, XSSerReporter):
             tok_url+= '#' + self_url
         elif 'onerror="javascript:PAYLOAD"' in dest_url:
             tok_url = dest_url.replace('javascript:PAYLOAD',
-            				self.encoding_permutations("window.location='" + self_url+"';"))
+                            self.encoding_permutations("window.location='" + self_url+"';"))
             tok_url = dest_url.replace('onerror="javascript:PAYLOAD"',
                                        _e('onerror="javascript:' + shadow_js_inj + '"'))
             tok_url+= '#' + self_url
@@ -1105,7 +1107,7 @@ class xsser(EncoderDecoder, XSSerReporter):
             self.report("[+] Trying: " + dest_url.strip())
         self.report("[+] Browser Support: " + payload['browser'])
  
-	# statistics injections counters
+    # statistics injections counters
         if payload['browser']=="[hashed_precheck_system]" or payload['browser']=="[Heuristic test]":
             self.check_positives = self.check_positives + 1
         elif payload['browser']=="[Data Control Protocol Injection]":
@@ -1307,8 +1309,12 @@ class xsser(EncoderDecoder, XSSerReporter):
 
         def crawler_main(args):
             return crawler.crawl(*args)
+        #crawler.crawl(url, int(options.crawler_width),
+        #              int(options.crawling),options.crawler_local,options.crawler_getdata,
+        #              options.crawler_postdata,options.crawler_allowpost)
         crawler.crawl(url, int(options.crawler_width),
-                      int(options.crawling),options.crawler_local)
+                      int(options.crawling),options.crawler_local, True,
+                      options.crawler_postdata,options.crawler_allowpost)
         """
         self.pool.addRequest(crawler_main, 
                         [[url, int(options.crawler_width), int(options.crawling),
@@ -1325,7 +1331,7 @@ class xsser(EncoderDecoder, XSSerReporter):
 
     def try_running(self, func, error, args=[]):
         """
-        Try running a function and print some error if it fails and exists with
+        Try running a function and print some error if it fails and exits with
         a fatal error.
         """
         try:
@@ -1351,7 +1357,7 @@ class xsser(EncoderDecoder, XSSerReporter):
     def create_fake_flash(self, filename, payload):
         """
         Create -fake- flash movie (.swf) with code injected
-    	"""
+        """
         options = self.options
         filename = options.flash
         payload = options.script
@@ -1563,9 +1569,9 @@ class xsser(EncoderDecoder, XSSerReporter):
     def generate_real_attack_url(self, dest_url, description, method, hashing, query_string, payload, orig_url):
         """
         Generate a real attack url, by using data from a successfull test run, but setting
-	a real attack payload using or not, special techniques.
+    a real attack payload using or not, special techniques.
 
-	This method also applies DOM stealth mechanisms.
+    This method also applies DOM stealth mechanisms.
         """
         user_attack_payload = payload['payload']
         if self.options.finalpayload:
@@ -1586,7 +1592,7 @@ class xsser(EncoderDecoder, XSSerReporter):
             user_attack_payload = '"style="position:absolute;top:0;left:0;z-index:1000;width:3000px;height:3000px" onMouseMove="' + user_attack_payload
         if self.options.ifr:
             user_attack_payload = '<iframe src="' + user_attack_payload + '"></iframe>'
-		    
+            
         do_anchor_payload = self.options.anchor
         anchor_data = None
         attack_hash = None
@@ -1894,7 +1900,7 @@ class xsser(EncoderDecoder, XSSerReporter):
         # heuristic always with statistics
         if self.options.heuristic:
             self.options.statistics = True
-	# some statistics reports
+    # some statistics reports
         if self.options.statistics:
             # heuristic test results
             if self.options.heuristic:
@@ -2029,18 +2035,18 @@ class xsser(EncoderDecoder, XSSerReporter):
                             "Vulnerables:",
                             total_discovered - self.false_positives)
                 self.report('-'*25)
-	        # efficiency ranking:
-	        # algor= vulnerables + false positives - failed * extras
-	        # extras: 
-	        ## 1 vuln -> identi.ca: +10000
-	        ## >3 vuln -> 1 test: +4500
-	        ## 1 vuln -> 1 test: +500 
-	        ## >100 payloads: +150
-	        ## proxy and heuristic: +100
-	        ## final payload injected: +100
-	        ## --Cem and --Doo: +75
-	        ## manual payload injected and --Dcp: +25
-	        ## checker: +10
+            # efficiency ranking:
+            # algor= vulnerables + false positives - failed * extras
+            # extras: 
+            ## 1 vuln -> identi.ca: +10000
+            ## >3 vuln -> 1 test: +4500
+            ## 1 vuln -> 1 test: +500 
+            ## >100 payloads: +150
+            ## proxy and heuristic: +100
+            ## final payload injected: +100
+            ## --Cem and --Doo: +75
+            ## manual payload injected and --Dcp: +25
+            ## checker: +10
                 mana = 0
                 if self.hash_found and self.options.tweet:
                     mana = mana + 10000

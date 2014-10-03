@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: iso-8859-15 -*-
+# vim: ai et sw=4 ts=4 fileencodings=iso-8859-15
 """
 $Id$
 
@@ -27,7 +28,7 @@ class XSSerOptions(optparse.OptionParser):
         optparse.OptionParser.__init__(self, 
                            description='Cross Site "Scripter" is an automatic -framework- to detect, exploit and\nreport XSS vulnerabilities in web-based applications.',
                            prog='XSSer.py',
-			   version='\nXSSer v1.6 (beta): "Grey Swarm!" - 2011/2012 - (GPLv3.0) -> by psy\n',
+               version='\nXSSer v1.6 (beta): "Grey Swarm!" - 2011/2012 - (GPLv3.0) -> by psy\n',
                            usage= '\n\nxsser [OPTIONS] [-u <url> |-i <file> |-d <dork>] [-g <get> |-p <post> |-c <crawl>] [Request(s)] [Vector(s)] [Bypasser(s)] [Technique(s)] [Final Injection(s)]')
 
         self.set_defaults(verbose=False, threads=5, retries=1, delay=0, timeout=30,
@@ -59,7 +60,10 @@ class XSSerOptions(optparse.OptionParser):
         group3.add_option("-p", action="store", dest="postdata", help="Enter payload to audit using POST (ex: 'foo=1&bar=')")
         group3.add_option("-c", action="store", dest="crawling", help="Number of urls to crawl on target(s): 1-99999")
         group3.add_option("--Cw", action="store", dest="crawler_width", help="Deeping level of crawler: 1-5")
-        group3.add_option("--Cl", action="store_true", dest="crawler_local", help="Crawl only local target(s) urls (default TRUE)") 
+        group3.add_option("--Cl", action="store_true", dest="crawler_local", help="Crawl only local target(s) urls (default TRUE)")
+        #group3.add_option("--Cg", action="store_true", dest="crawler_getdata", help="Try to use every found GET parameter during crawling as an injection target.")
+        group3.add_option("--Cp", action="store_true", dest="crawler_postdata", help="Try to use every found POST parameter during crawling as an injection target (using POST requests). Implies --Cap")
+        group3.add_option("--Cap", action="store_true", dest="crawler_allowpost", help="Use POST requests to page urls found in forms using POST during crawling.")
         self.add_option_group(group3)
 
         group4 = optparse.OptionGroup(self, "*Configure Request(s)*",
