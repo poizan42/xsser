@@ -106,8 +106,13 @@ class Crawler(object):
         """
         if not self._armed:
             return []
-        if allowpost == None:
-            allowpost = postdata
+        if not allowpost and postdata:
+            allowpost = True
+        if None in locals().itervalues():
+            args = locals()
+            raise TypeError("NoneType is illegal for the arguments " + ",".join(
+                (k for k in args.iterkeys() if args[k] == None)))
+
         self.getdata = getdata
         self.postdata = postdata
         self.allowpost = allowpost
@@ -159,13 +164,13 @@ class Crawler(object):
         if not attack_url in self._parent.crawled_urls:
             self._parent.crawled_urls.append(attack_url)
 
-    def _crawl(self, basepath, path, depth=3, width=0):
+    def _crawl(self, basepath, path, depth=3, width=0, usePost = False, postVars = {}):
         """
         perform a crawl on the given url.
 
         this function downloads and looks for links.
         """
-        self._crawled.append(path)
+        self._crawled.append((path, usePost, postVars if usePost else None))
         if not path.startswith("http"):
             return
 
@@ -251,16 +256,33 @@ class Crawler(object):
         if len(self.pool.workRequests) < int(self._max/2):
             while self._to_crawl:
                 next_job = self._to_crawl.pop()
-                self._crawl(*next_job)
+                self._crawl(**next_job)
+
+    # percent encodes everything that is not printable ascii, as this is what 
+    # browsers usually do with urls.
+    def _percent_encode_nonpascii(self, url):
+        encUrl = url.encode('utf-8') if isinstance(url, unicode) else url
+        return "".join(
+            chr(ord(c)) if ord(c) <= 0x7E and ord(c) >= 0x21
+            else "%%%02X" % ord(c)
+            for c in url)
+
+    def _dict_uniToUtf8(self, d):
+        return dict(
+            (v.encode('utf-8') if isinstance(v, unicode) else v for v in kv)
+            for kv in d.iteritems())
 
     def _append_pars(self, url, pars):
-        enc = urllib.urlencode(pars)
-        lastSlash = url.rfind('/')
-        lastQM = url.rfind('?', lastSlash + 1)
-        if lastQM > -1:
-            return url + '&' + enc
-        else:
-            return url + '?' + enc
+        url = self._percent_encode_nonpascii(url)
+        parsed = urllib2.urlparse.urlparse(url)
+        qs = cgi.parse_qs(parsed.query)
+        qs2 = dict(((kv[0], kv[1][-1]) for kv in qs.iteritems()))
+        pars2 = self._dict_uniToUtf8(pars)
+        qs2.update(pars2)
+        enc = urllib.urlencode(pars2)
+        newParsed = list(parsed)
+        newParsed[4] = enc
+        return urllib2.urlparse.urlunparse(newParsed)
 
     #def _get_done(self, depth, width, request, result):
     def _get_done(self, basepath, depth, width, path, html_data, content_type): # request, result):
@@ -295,6 +317,10 @@ class Crawler(object):
                     method = form["method"].lower()
                 else:
                     method = "get"
+                if method != "get" and method != "post":
+                    self.report("Form with unsupported method '" + method + "'. Falling back to GET.")
+                    method = "get"
+                    continue
                 if form.has_key("action"):
                     action_path = urlparse.urljoin(path, form["action"])
                 else:
@@ -323,19 +349,26 @@ class Crawler(object):
         if len(links) > self._max:
             links = links[:self._max]
         for a in links:
-            print "a: " + repr(a)
-            try:
-                if 'href' in a:
-                  href = a['href']
-                else:
-                  href = a['url']
-            except KeyError:
-                # this link has no href
+            # print "a: " + repr(a)
+            if 'href' in a:
+                href = a['href']
+            elif 'url' in a:
+                href = a['url']
+            else:
                 continue
+            href = self._percent_encode_nonpascii(href)
+            if 'method' in a:
+                method = a['method']
+            else:
+                method = 'get'
+            if method == 'post' and 'pars' in a:
+                postVars = self._dict_uniToUtf8(a['pars'])
+            else:
+                postVars = {}
             if href.startswith("javascript") or href.startswith('mailto:'):
                 continue
             href = urlparse.urljoin(path, href)
-            if not href.startswith("http") or not "." in href:
+            if not href.startswith("http"):
                 continue
             href = href.split('#',1)[0]
             scheme_rpos = href.rfind('http://')
@@ -347,16 +380,19 @@ class Crawler(object):
                 href2 = href[:scheme_rpos]
                 self._check_url(basepath, path, href1, depth, width)
                 self._check_url(basepath, path, href2, depth, width)
-            self._check_url(basepath, path, href, depth, width)
+            self._check_url(basepath, path, href, depth, width,
+                self.allowpost and method == "post", postVars)
         return self._found_args
 
-    def _check_url(self, basepath, path, href, depth, width):
+    def _check_url(self, basepath, path, href, depth, width, usePost = False, postVars = {}):
         """
         process the given url for a crawl
         check to see if we have to continue crawling on the given url.
         """
+        if usePost == None:
+            raise TypeError
         do_crawling = self._parse_external or href.startswith(basepath)
-        if do_crawling and not href in self._crawled:
+        if do_crawling and not (href, usePost, postVars if usePost else None) in self._crawled:
             self._find_args(href)
             for reporter in self._parent._reporters:
                 reporter.add_link(path, href)
@@ -364,7 +400,13 @@ class Crawler(object):
                 #if self.verbose == 2:
                     #    print " "*(self._max-depth) + " do: " + href
                 if len(self._to_crawl) < self._max:
-                    self._to_crawl.append([basepath, href, depth-1, width])
+                    self._to_crawl.append({
+                        'basepath' : basepath,
+                        'path': href,
+                        'depth': depth-1,
+                        'width': width,
+                        'usePost': usePost,
+                        'postVars': postVars})
                     #self._crawl(basepath, href, depth-1, width)
 
 if __name__ == "__main__":

@@ -1313,8 +1313,10 @@ class xsser(EncoderDecoder, XSSerReporter):
         #              int(options.crawling),options.crawler_local,options.crawler_getdata,
         #              options.crawler_postdata,options.crawler_allowpost)
         crawler.crawl(url, int(options.crawler_width),
-                      int(options.crawling),options.crawler_local, True,
-                      options.crawler_postdata,options.crawler_allowpost)
+                      int(options.crawling),
+                      True if options.crawler_local == None else False,
+                      True,
+                      bool(options.crawler_postdata),bool(options.crawler_allowpost))
         """
         self.pool.addRequest(crawler_main, 
                         [[url, int(options.crawler_width), int(options.crawling),
