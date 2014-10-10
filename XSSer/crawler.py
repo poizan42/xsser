@@ -31,6 +31,7 @@ import time
 import traceback
 import curlcontrol
 import threadpool
+import itertools
 from Queue import Queue
 from collections import defaultdict
 from BeautifulSoup import BeautifulSoup
@@ -77,7 +78,7 @@ class Crawler(object):
     def set_reporter(self, reporter):
         self._reporter = reporter
 
-    def _find_args(self, url):
+    def _find_args(self, url, usePost, postVars):
         """
         find parameters in given url.
         """
@@ -87,12 +88,16 @@ class Crawler(object):
             path = parsed.scheme + "://" + parsed.netloc + parsed.path
         else:
             path = parsed.netloc + parsed.path
-        for arg_name in qs:
-            key = (arg_name, parsed.netloc)
+        combined_args = ((q, None) for q in qs)
+        if usePost:
+            combined_args = itertools.chain(combined_args, ((None, p) for p in postVars))
+        combined_args = list(combined_args)
+        for (arg_name, parg_name) in combined_args:
+            key = (arg_name, parg_name, parsed.netloc, usePost)
             zipped = zip(*self._found_args[key])
-            if not zipped or not path in zipped[0]:
-                self._found_args[key].append([path, url])
-                self.generate_result(arg_name, path, url)
+            if not zipped or not (path, usePost) in zipped[0]:
+                self._found_args[key].append([(path, usePost), url])
+                self.generate_result(arg_name, path, url, usePost, parg_name, postVars)
         ncurrent = sum(map(lambda s: len(s), self._found_args.values()))
         if ncurrent >= self._max:
             self._armed = False
@@ -152,17 +157,26 @@ class Crawler(object):
             self.pool.dismissWorkers(len(self.pool.workers))
             self.pool.joinAllDismissedWorkers()
 
-    def generate_result(self, arg_name, path, url):
-        parsed = urllib2.urlparse.urlparse(url)
-        qs = cgi.parse_qs(parsed.query)
-        qs_joint = {}
-        for key, val in qs.iteritems():
-            qs_joint[key] = val[0]
-        attack_qs = dict(qs_joint)
-        attack_qs[arg_name] = "VECTOR"
-        attack_url = path + '?' + urllib.urlencode(attack_qs)
-        if not attack_url in self._parent.crawled_urls:
-            self._parent.crawled_urls.append(attack_url)
+    def generate_result(self, arg_name, path, url, usePost, pvName, postVars):
+        if arg_name != None:
+            parsed = urllib2.urlparse.urlparse(url)
+            qs = cgi.parse_qs(parsed.query)
+            attack_qs = dict((key, val[-1]) for key, val in qs.iteritems())
+            attack_qs[arg_name] = "VECTOR"
+            attack_url = path + '?' + urllib.urlencode(attack_qs)
+        else:
+            attack_url = url
+        if usePost:
+            if pvName != None:
+                attack_ps = dict(postVars)
+                attack_ps[pvName] = "VECTOR"
+                attack_ps_enc = urllib.urlencode(attack_ps)
+            else:
+                attack_ps_enc = urllib.urlencode(postVars)
+        else:
+            attack_ps_enc = None
+        if not (attack_url, attack_ps_enc) in self._parent.crawled_urls:
+            self._parent.crawled_urls.append((attack_url, attack_ps_enc))
 
     def _crawl(self, basepath, path, depth=3, width=0, usePost = False, postVars = {}):
         """
@@ -177,18 +191,22 @@ class Crawler(object):
         def _cb(request, result):
             self._get_done(depth, width, request, result)
 
-        self._requests.append(path)
-        self.pool.addRequest(self._curl_main, [[path, depth, width, basepath]],
+        self._requests.append((path, usePost, postVars))
+        self.pool.addRequest(self._curl_main, [[
+                             path, depth, width, basepath, usePost, postVars]],
                              self._get_done_dummy, self._get_error)
 
     def _curl_main(self, pars):
-        path, depth, width, basepath = pars
+        path, depth, width, basepath, usePost, postVars = pars
         if not self._armed or len(self._parent.crawled_urls) >= self._max:
             raise EmergencyLanding
         c = self.curl()
         c.set_timeout(5)
         try:
-            res = c.get(path)
+            if usePost:
+                res = c.post(path, urllib.urlencode(postVars))
+            else:
+                res = c.get(path)
         except Exception as error:
             c.close()
             del c
@@ -196,18 +214,18 @@ class Crawler(object):
         c_info = c.info().get('content-type', None)
         c.close()
         del c
-        self._get_done(basepath, depth, width, path, res, c_info)
+        self._get_done(basepath, depth, width, path, res, c_info, usePost, postVars)
         #return res, c_info
 
     def _get_error(self, request, error):
-        path, depth, width, basepath = request.args[0]
+        path, depth, width, basepath, usePost, postVars = request.args[0]
         e_type, e_value, e_tb = error
         if e_type == pycurl.error:
             errno, message = e_value.args
             if errno == 28:
                 print("requests pyerror -1")
                 self.enqueue_jobs()
-                self._requests.remove(path)
+                self._requests.remove((path, usePost, postVars))
                 return # timeout
             else:
                 self.report('crawler curl error: '+message+' ('+str(errno)+')')
@@ -220,7 +238,7 @@ class Crawler(object):
             for reporter in self._parent._reporters:
                 reporter.mosquito_crashed(path, str(e_value))
         self.enqueue_jobs()
-        self._requests.remove(path)
+        self._requests.remove((path, usePost, postVars))
 
     def _emergency_parse(self, html_data, start=0):
         links = set()
@@ -246,9 +264,9 @@ class Crawler(object):
         #print(request.args)
         #print("PATH",request.args[0][0],len(self._requests))
         #print("\n".join(self._requests))
-        path = request.args[0][0]
+        path, depth, width, basepath, usePost, postVars = request.args[0]
         self.enqueue_jobs()
-        self._requests.remove(path)
+        self._requests.remove((path, usePost, postVars))
             #if not self._requests:
                 #self._armed = False
 
@@ -258,8 +276,8 @@ class Crawler(object):
                 next_job = self._to_crawl.pop()
                 self._crawl(**next_job)
 
-    # percent encodes everything that is not printable ascii, as this is what 
-    # browsers usually do with urls.
+    # percent encodes everything that is not non-whitespace printable ascii,
+    # as this is what browsers usually do with urls.
     def _percent_encode_nonpascii(self, url):
         encUrl = url.encode('utf-8') if isinstance(url, unicode) else url
         return "".join(
@@ -285,7 +303,8 @@ class Crawler(object):
         return urllib2.urlparse.urlunparse(newParsed)
 
     #def _get_done(self, depth, width, request, result):
-    def _get_done(self, basepath, depth, width, path, html_data, content_type): # request, result):
+    def _get_done(self, basepath, depth, width, path, html_data, content_type,
+                  requestPostUsed, requestPostVars):
         #print("get result")
         #html_data, content_type = result
         #path = request.args[0]
@@ -349,7 +368,6 @@ class Crawler(object):
         if len(links) > self._max:
             links = links[:self._max]
         for a in links:
-            # print "a: " + repr(a)
             if 'href' in a:
                 href = a['href']
             elif 'url' in a:
@@ -372,8 +390,6 @@ class Crawler(object):
                 continue
             href = href.split('#',1)[0]
             scheme_rpos = href.rfind('http://')
-            # print "path: " + path
-            # print "basepath: " + basepath
             if not scheme_rpos in [0, -1]:
                 # looks like some kind of redirect so we try both too ;)
                 href1 = href[scheme_rpos:]
@@ -393,7 +409,7 @@ class Crawler(object):
             raise TypeError
         do_crawling = self._parse_external or href.startswith(basepath)
         if do_crawling and not (href, usePost, postVars if usePost else None) in self._crawled:
-            self._find_args(href)
+            self._find_args(href, usePost, postVars)
             for reporter in self._parent._reporters:
                 reporter.add_link(path, href)
             if self._armed and depth>0:

@@ -91,7 +91,8 @@ class XSSerOptions(optparse.OptionParser):
 
         group5 = optparse.OptionGroup(self, "*Checker Systems*",
         "This options are usefull to know if your target(s) have some filters against XSS attacks, to reduce 'false positive' results and to perform more advanced tests:")
-        group5.add_option("--no-head", action="store_true", dest="nohead", help="NOT verify the stability of the url (codes: 200|302) with a HEAD pre-check request")
+        group5.add_option("--no-head", action="store_true", dest="nohead", help="Do NOT verify the stability of the url (codes: 200|302) with a HEAD pre-check request")
+        group5.add_option("--no-head-post", action="store_true", dest="nohead_post", help="Same as --no-head, but only applies to POST requests")
         group5.add_option("--alive", action="store", dest="isalive", type="int", help="set limit of every how much errors XSSer must to verify that target is alive")
         group5.add_option("--hash", action="store_true", dest="hash", help="send an unique hash, without vectors, to pre-check if target(s) repeats all content recieved")
         group5.add_option("--heuristic", action="store_true", dest="heuristic", help="launch a heuristic testing to discover which parameters are filtered on target(s) code: ;\/<>" + '"' + "'" + "=")

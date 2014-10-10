@@ -524,18 +524,26 @@ class xsser(EncoderDecoder, XSSerReporter):
             return self.options.getdata
         return ""
 
-    def attack_url(self, url, payloads, query_string):
+    def attack_url(self, url_spec, payloads, query_string):
         """
         Attack the given url, checking or not, if is alive.
         """
-        if self.options.nohead:
+        is_post = not isinstance(url_spec, basestring)
+        if is_post:
+            url = url_spec[0]
+            post_data = url_spec[1]
+        else:
+            url = url_spec
+            post_data = None
+
+        if self.options.nohead or (is_post and self.options.nohead_post):
             for payload in payloads:
-                self.attack_url_payload(url, payload, query_string)
+                self.attack_url_payload(url, payload, query_string, post_data)
 
         else:
             hc = Curl()
             try:
-                urls = hc.do_head_check([url])
+                hc.do_head_check([url])
             except:
                 print "Target url: (" + url + ") is malformed" + " [DISCARDED]" + "\n"
                 return
@@ -552,7 +560,7 @@ class xsser(EncoderDecoder, XSSerReporter):
                 print "\nHEAD alive check for the target: (" + url + ") is OK" + "(" + hc.info()["http-code"] + ") [AIMED]\n"
                 self.success_connection = self.success_connection + 1
                 for payload in payloads:
-                    self.attack_url_payload(url, payload, query_string)
+                    self.attack_url_payload(url, payload, query_string, post_data)
             else:
                 print "\nHEAD alive check for the target: (" + url + ") is FAILED(" + hc.info()["http-code"] + ") [DISCARDED]" + "\n"
                 self.not_connection = self.not_connection + 1
@@ -595,7 +603,7 @@ class xsser(EncoderDecoder, XSSerReporter):
                 dest_url = url.strip() + payload_url
         return dest_url, url_orig_hash
 
-    def attack_url_payload(self, url, payload, query_string):
+    def attack_url_payload(self, url, payload, query_string, post_data):
         if not self.pool:
             pool = self.mothership.pool
         else:
@@ -608,30 +616,45 @@ class xsser(EncoderDecoder, XSSerReporter):
         def _error_cb(request, error):
             self.error_attack_url_payload(c, url, request, error)
 
-        if self.options.getdata or not self.options.postdata:
-            dest_url, newhash = self.get_url_payload(url, payload, query_string)
-            #self.report(dest_url)
-            self._prepare_extra_attacks()
-            pool.addRequest(c.get, [dest_url], _cb, _error_cb)
-            self._ongoing_requests += 1
-            #c.get(dest_url)
+        def _do_post(args):
+            c.post(args[0], args[1])
 
-        if self.options.postdata:
-            dest_url, newhash = self.get_url_payload("", payload, query_string)
-            dest_url = dest_url.strip().replace("/", "", 1)
-            self.report("\nSending POST:", query_string, "\n")
-            data = c.post(url, dest_url)
+        explicit_post_data = post_data != None
+        if post_data == None and self.options.postdata:
+            post_data = self.options.postdata
+        
+        if not explicit_post_data or 'VECTOR' in query_string or \
+              (explicit_post_data and not 'VECTOR' in post_data):
+            dest_url, newhash = self.get_url_payload(url, payload, query_string)
+        else:
+            dest_url = url
+
+        if post_data != None:
+            if not explicit_post_data or 'VECTOR' in post_data:
+                dest_post_data, newhash = self.get_url_payload(post_data, payload, "")
+            else:
+                dest_post_data = post_data
+            self.report("\nSending POST:", dest_post_data, "\n")
+            self._prepare_extra_attacks()
+            pool.addRequest(_do_post, [[dest_url,dest_post_data]], _cb, _error_cb)
+            self._ongoing_requests += 1
+        else:
             self._prepare_extra_attacks()
             pool.addRequest(c.get, [dest_url], _cb, _error_cb)
             self._ongoing_requests += 1
-            #c.post(url, dest_url)
 
     def error_attack_url_payload(self, c, url, request, error):
         self._ongoing_requests -= 1
         for reporter in self._reporters:
             reporter.mosquito_crashed(url, str(error[0]))
-        dest_url = request.args[0]
-        self.report("Failed attempt (URL Malformed!?): " + url + "\n")
+        dest_url_spec = request.args[0]
+        if isinstance(dest_url_spec, basestring):
+            dest_url = dest_url_spec
+            msg_post_data = ""
+        else:
+            dest_url, post_data = dest_url_spec
+            msg_post_data = " POST data: " + post_data
+        self.report("Failed attempt (URL Malformed!?): " + url + msg_post_data + "\n")
         self.urlmalformed = True
         #self.report(self.urlmalformed)
         if self.urlmalformed == True and self.urlspoll[0] == url:
@@ -842,6 +865,8 @@ class xsser(EncoderDecoder, XSSerReporter):
             self.report("[-] Hashing: " + url_orig_hash)
         if payload['browser'] == "[Heuristic test]":
             self.report("[+] Checking: " + str(payload['payload']).strip('XSS'))
+        elif not isinstance(dest_url, basestring):
+            self.report("[+] Trying: " + dest_url[0].strip() + " with POST data: " + dest_url[1])
         else:
             self.report("[+] Trying: " + dest_url.strip())
         if payload['browser'] == "[Heuristic test]" or payload['browser'] == "[hashed_precheck_system]" or payload['browser'] == "[manual_injection]":
@@ -961,7 +986,14 @@ class xsser(EncoderDecoder, XSSerReporter):
                     # some anti false positives manual checkers
                     if 'PAYLOAD' in payload['payload']:
                         user_attack_payload = payload['payload'].replace('PAYLOAD', url_orig_hash)
-                        if str('/&gt;' + hashing) in curl_handle.body() or str('href=' + dest_url + hashing) in curl_handle.body() or str('content=' + dest_url + hashing) in curl_handle.body():
+                        fcheck = str('/&gt;' + hashing) in curl_handle.body() 
+                        if isinstance(dest_url, basestring):
+                            du = dest_url
+                        else:
+                            du = dest_url[0]
+                        fcheck |= str('href=' + du + hashing) in curl_handle.body() or \
+                            str('content=' + du + hashing) in curl_handle.body()
+                        if fcheck: 
                             #self.report("FAILED: default")
                             #self.report(user_attack_payload)
                             self.add_failure(dest_url, payload, hashing, query_string, attack_type)
@@ -1103,6 +1135,8 @@ class xsser(EncoderDecoder, XSSerReporter):
 
         if payload['browser'] == "[Heuristic test]":
             self.report("[+] Trying: " + str(payload['payload']).strip('XSS'))
+        elif not isinstance(dest_url, basestring):
+            self.report("[+] Trying: " + dest_url[0].strip() + " with POST data: " + dest_url[1])
         else:
             self.report("[+] Trying: " + dest_url.strip())
         self.report("[+] Browser Support: " + payload['browser'])
@@ -1287,11 +1321,11 @@ class xsser(EncoderDecoder, XSSerReporter):
                     crawler.cancel()
                     break
                 if len(self.crawled_urls) >= int(options.crawling) or not crawler._requests:
-                    self.report("Founded enough results... calling all mosquitoes home", options.crawling)
+                    self.report("Found enough results... calling all mosquitoes home", options.crawling)
                     crawler.cancel()
                     break
                 time.sleep(0.1)
-            self.report("Mosquitoes founded a total of: " + str(len(self.crawled_urls)) + " urls")
+            self.report("Mosquitoes found a total of: " + str(len(self.crawled_urls)) + " urls")
             return self.crawled_urls
      
         if not options.imx or not options.flash or not options.xsser_gtk or not options.update:
@@ -1513,7 +1547,11 @@ class xsser(EncoderDecoder, XSSerReporter):
         #from urlparse import urlparse
         for url in urls:
             #o = urlparse(url)
-            if url.startswith("http://") or url.startswith("https://"):
+            if not isinstance(url, basestring):
+                act_url = url[0]
+            else:
+                act_url = url
+            if act_url.startswith("http://") or act_url.startswith("https://"):
             # url sanitize info
                 #print o
                 #print "----------"
@@ -1656,6 +1694,12 @@ class xsser(EncoderDecoder, XSSerReporter):
             print(formatted)
         for reporter in self._reporters:
             reporter.post(formatted)
+
+    def _post_pair_desc(self, url_spec):
+        if isinstance(url_spec, basestring):
+            return url_spec
+        else:
+            return url_spec[0] + " with POST data: " + url_spec[1]
 
     def print_results(self):
         """
@@ -1861,7 +1905,7 @@ class xsser(EncoderDecoder, XSSerReporter):
             else:
                 self.auto_founded = self.auto_founded + 1
                 self.report("[I] Target:", line[6])
-                self.report("[+] Injection:", line[0])
+                self.report("[+] Injection:", self._post_pair_desc(line[0]))
                 if self.options.finalpayload or self.options.finalremote or self.options.doss or self.options.dos or self.options.b64:
                     self.report("[*] Final Attack: ", attack_url)
                 else:
@@ -1872,7 +1916,7 @@ class xsser(EncoderDecoder, XSSerReporter):
                     fout.write("\n" + "XSSer Security Report: " + str(datetime.datetime.now()) + "\n")
                     fout.write("---------------------" + "\n")
                     fout.write("[I] Target: " + line[6] + "\n")
-                    fout.write("[+] Injection: " + line[0] + "\n")
+                    fout.write("[+] Injection: " + self._post_pair_desc(line[0]) + "\n")
                     if self.options.finalpayload or self.options.finalremote or self.options.doss or self.options.dos or self.options.b64:
                         fout.write("[*] Final Attack: " +  attack_url + "\n")
                     else:

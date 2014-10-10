@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: iso-8859-15 -*-
+# vim: ai et sw=4 ts=4 fileencodings=iso-8859-15
 """
 $Id$
 
